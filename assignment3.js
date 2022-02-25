@@ -52,10 +52,15 @@ export class Assignment3 extends Scene {
                 {ambient: 0.2, diffusivity: .6, color: hex_color("#ffffff")}),
             book_1_cover: new Material(new defs.Phong_Shader(),
                 {ambient: 0.2, diffusivity: .6, color: hex_color("#d70f0f")}),
+            wood: new Material(new defs.Phong_Shader(),
+                {ambient: 0.2, diffusivity: 0.8, specularity: 0.3, color: hex_color("#663300")}),
         }
 
         this.toggle = {
-           book: true,
+            table: true,
+            book: true,
+            chair: true,
+            mug: true,
         }
 
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
@@ -63,9 +68,12 @@ export class Assignment3 extends Scene {
 
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
-        this.key_triggered_button("View solar system", ["Control", "0"], () => this.attached = () => this.initial_camera_location);
+        this.key_triggered_button("Toggle Table", ["Control", "0"], () => this.toggle.table = !this.toggle.table);
         this.new_line();
-        this.key_triggered_button("Toggle Book", ["Control", "1"], () => this.toggle.book = !this.toggle.book);
+        this.key_triggered_button("Toggle Chair", ["Control", "1"], () => this.toggle.chair = !this.toggle.chair);
+        this.new_line();
+        this.key_triggered_button("Toggle Book", ["Control", "2"], () => this.toggle.book = !this.toggle.book);
+
     }
 
     display(context, program_state) {
@@ -93,25 +101,38 @@ export class Assignment3 extends Scene {
         const white = hex_color("#ffffff");
         let sun_radius = 2 + Math.sin(2 * Math.PI * t / 10);
         const sun_color = color(1, (sun_radius / 2 - 0.5), (sun_radius / 2 - 0.5), 1);
+
         //this.shapes.torus.draw(context, program_state, model_transform, this.materials.test.override({color: yellow}));
         sun_radius = 3;
 
-        let model_transform_sun = model_transform.times(Mat4.rotation(t / 5,0,0,1))
+        let model_transform_sun = model_transform.times(Mat4.rotation(1 / 5,0,0,1))
             .times(Mat4.scale(sun_radius, sun_radius, sun_radius))
-            .times(Mat4.translation(0,-3,0));
+            .times(Mat4.translation(-3,2.5,0));
         this.shapes.sphere4.draw(context, program_state, model_transform_sun, this.materials.sun.override({color: sun_color}));
 
         // drawing the light
-        const light_size = 10 ** sun_radius;
+        const light_size = 50 * sun_radius;
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), light_size)];
 
+        // Table
         let model_transform_leg = model_transform.times(Mat4.translation(-10,-6,0))
             .times(Mat4.scale(0.5,3,0.5));
-        this.shapes.cube.draw(context, program_state, model_transform_leg, this.materials.test);
-        this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,0)), this.materials.test);
-        this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(0,0,-10)), this.materials.test);
-        this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,-10)), this.materials.test);
+        let model_transform_counter = model_transform.times(Mat4.translation(-12.5, -2.5,-2.5))
+            .times(Mat4.scale(8,0.5,5));
 
+        // Chair
+        let model_transform_ch_leg = model_transform.times(Mat4.translation(2,-7,1))
+            .times(Mat4.scale(0.5,2,0.5));
+        let model_transform_seat = model_transform.times(Mat4.translation(0.5, -4.75,-1))
+            .times(Mat4.scale(3,0.3,3));
+        let model_transform_back = model_transform.times(Mat4.translation(3.2,-1,-1))
+            .times(Mat4.scale(0.3, 4,3));
+        let model_transform_arm = model_transform.times(Mat4.translation(-2.2, -3.5, 1.7))
+            .times(Mat4.scale(0.3,1,0.3));
+        let model_transform_armrest = model_transform.times(Mat4.translation(0.5,-2.25,1.7))
+            .times(Mat4.scale(3,0.3,0.3));
+
+        // Book
         let model_transform_book1 = model_transform.times(Mat4.translation(-13, -1.8, 0))
             .times(Mat4.scale(1, 0.15, 1.5));
         let model_transform_book1_bottom = model_transform_book1.times(Mat4.scale(1.1, 0.2, 1.1))
@@ -120,6 +141,27 @@ export class Assignment3 extends Scene {
         let model_transform_book1_binding = model_transform.times(Mat4.translation(-13.945, -1.8, 0))
             .times(Mat4.scale(0.10, 0.16, 1.65));
 
+        if(this.toggle.table) {
+            this.shapes.cube.draw(context, program_state, model_transform_counter, this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_leg, this.materials.test);
+            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,0)), this.materials.test);
+            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(0,0,-10)), this.materials.test);
+            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,-10)), this.materials.test);
+        }
+
+        if(this.toggle.chair) {
+            this.shapes.cube.draw(context, program_state, model_transform_ch_leg, this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_ch_leg.times(Mat4.translation(-6, 0, 0)), this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_ch_leg.times(Mat4.translation(0, 0, -6)), this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_ch_leg.times(Mat4.translation(-6, 0, -6)), this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_seat, this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_back, this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_arm, this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_arm.times(Mat4.translation(0,0,-18)), this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_armrest, this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_armrest.times(Mat4.translation(0,0,-18)), this.materials.wood);
+        }
+
         if(this.toggle.book) {
             this.shapes.cube.draw(context, program_state, model_transform_book1, this.materials.test);
             this.shapes.cube.draw(context, program_state, model_transform_book1_bottom, this.materials.book_1_cover);
@@ -127,9 +169,6 @@ export class Assignment3 extends Scene {
             this.shapes.cube.draw(context, program_state, model_transform_book1_binding, this.materials.book_1_cover);
         }
 
-        let model_transform_counter = model_transform.times(Mat4.translation(-12.5, -2.5,-2.5))
-            .times(Mat4.scale(8,0.5,5,0,5));
-        this.shapes.cube.draw(context, program_state, model_transform_counter, this.materials.test);
 /*
         // drawing planet 1
         let model_transform_mercury = model_transform.times(Mat4.rotation(t, 0, 1, 0))
