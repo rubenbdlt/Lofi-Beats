@@ -3,6 +3,9 @@ import {defs, tiny} from './examples/common.js';
 const {
     Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene,
 } = tiny;
+// Makes these shapes usable
+const {Triangle, Square, Tetrahedron, Windmill, Cylindrical_Tube} = defs;
+
 
 class Cube extends Shape {
     constructor() {
@@ -37,6 +40,7 @@ export class Assignment3 extends Scene {
             sphere4: new defs.Subdivision_Sphere(4),
             circle: new defs.Regular_2D_Polygon(1, 15),
             cube: new Cube(),
+            cup: new Cylindrical_Tube(15,15),
             // TODO:  Fill in as many additional shape instances as needed in this key/value table.
             //        (Requirement 1)
         };
@@ -143,9 +147,9 @@ export class Assignment3 extends Scene {
             .times(Mat4.scale(0.10, 0.16, 1.65));
 
         // Mug
-        let mug_model_transform = model_transform.times(Mat4.scale(1,3,1))
+        let mug_model_transform = model_transform.times(Mat4.scale(0.68,1.5,0.68))
                                                  .times(Mat4.rotation(4.71239,1,0,0))
-                                                 .times(Mat4.translation(-7,0,-0.339));
+                                                 .times(Mat4.translation(-10.295,0,-0.828));
         let mug_base_model_transform = model_transform//.times(Mat4.scale(1,1,1))
                                                       .times(Mat4.rotation(4.71239,1,0,0))
                                                       .times(Mat4.translation(-7,0,-1.99)).times(Mat4.scale(0.68,0.68,1));
@@ -179,7 +183,7 @@ export class Assignment3 extends Scene {
         }
 
         if(this.toggle.mug) {
-             this.shapes.torus.draw(context, program_state, mug_model_transform, this.materials.ceramic);
+             this.shapes.cup.draw(context, program_state, mug_model_transform, this.materials.ceramic);
              this.shapes.circle.draw(context, program_state, mug_base_model_transform, this.materials.ceramic);
         }
 
