@@ -54,6 +54,8 @@ export class Assignment3 extends Scene {
                 {ambient: 0.2, diffusivity: .6, color: hex_color("#d70f0f")}),
             wood: new Material(new defs.Phong_Shader(),
                 {ambient: 0.2, diffusivity: 0.8, specularity: 0.3, color: hex_color("#663300")}),
+            ceramic: new Material(new defs.Phong_Shader(),
+                {ambient: 0.7, diffusivity: 0.6, specularity: 0.3, color: color(1,0.95,0.9,1)}),
         }
 
         this.toggle = {
@@ -73,6 +75,7 @@ export class Assignment3 extends Scene {
         this.key_triggered_button("Toggle Chair", ["Control", "1"], () => this.toggle.chair = !this.toggle.chair);
         this.new_line();
         this.key_triggered_button("Toggle Book", ["Control", "2"], () => this.toggle.book = !this.toggle.book);
+        this.key_triggered_button("Toggle Mug", ["Control", "3"], () => this.toggle.mug = !this.toggle.mug);
 
     }
 
@@ -139,6 +142,14 @@ export class Assignment3 extends Scene {
         let model_transform_book1_binding = model_transform.times(Mat4.translation(-13.945, -1.8, 0))
             .times(Mat4.scale(0.10, 0.16, 1.65));
 
+        // Mug
+        let mug_model_transform = model_transform.times(Mat4.scale(1,3,1))
+                                                 .times(Mat4.rotation(4.71239,1,0,0))
+                                                 .times(Mat4.translation(-7,0,-0.339));
+        let mug_base_model_transform = model_transform//.times(Mat4.scale(1,1,1))
+                                                      .times(Mat4.rotation(4.71239,1,0,0))
+                                                      .times(Mat4.translation(-7,0,-1.99)).times(Mat4.scale(0.68,0.68,1));
+
         if(this.toggle.table) {
             this.shapes.cube.draw(context, program_state, model_transform_counter, this.materials.wood);
             this.shapes.cube.draw(context, program_state, model_transform_leg, this.materials.wood);
@@ -165,6 +176,11 @@ export class Assignment3 extends Scene {
             this.shapes.cube.draw(context, program_state, model_transform_book1_bottom, this.materials.book_1_cover);
             this.shapes.cube.draw(context, program_state, model_transform_book1_top, this.materials.book_1_cover);
             this.shapes.cube.draw(context, program_state, model_transform_book1_binding, this.materials.book_1_cover);
+        }
+
+        if(this.toggle.mug) {
+             this.shapes.torus.draw(context, program_state, mug_model_transform, this.materials.ceramic);
+             this.shapes.circle.draw(context, program_state, mug_base_model_transform, this.materials.ceramic);
         }
 
 /*
