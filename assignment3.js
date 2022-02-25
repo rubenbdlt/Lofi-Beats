@@ -88,7 +88,7 @@ export class Assignment3 extends Scene {
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, .1, 1000);
 
-        const light_position = vec4(0, 0, 0, 1);
+        const light_position = vec4(4, 3, 0, 1);
         // The parameters of the Light are: position, color, size
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
@@ -99,15 +99,13 @@ export class Assignment3 extends Scene {
 
         // drawing the sun
         const white = hex_color("#ffffff");
-        let sun_radius = 2 + Math.sin(2 * Math.PI * t / 10);
+        const sun_radius = 2 + Math.sin(2 * Math.PI * t / 10);
         const sun_color = color(1, (sun_radius / 2 - 0.5), (sun_radius / 2 - 0.5), 1);
-
         //this.shapes.torus.draw(context, program_state, model_transform, this.materials.test.override({color: yellow}));
-        sun_radius = 3;
 
-        let model_transform_sun = model_transform.times(Mat4.rotation(1 / 5,0,0,1))
-            .times(Mat4.scale(sun_radius, sun_radius, sun_radius))
-            .times(Mat4.translation(-3,2.5,0));
+        let model_transform_sun = model_transform//.times(Mat4.rotation(t / 5,0,0,1))
+            .times(Mat4.scale(3, 3, 3))
+            .times(Mat4.translation(4,3,0));
         this.shapes.sphere4.draw(context, program_state, model_transform_sun, this.materials.sun.override({color: sun_color}));
 
         // drawing the light
@@ -143,10 +141,10 @@ export class Assignment3 extends Scene {
 
         if(this.toggle.table) {
             this.shapes.cube.draw(context, program_state, model_transform_counter, this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_leg, this.materials.test);
-            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,0)), this.materials.test);
-            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(0,0,-10)), this.materials.test);
-            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,-10)), this.materials.test);
+            this.shapes.cube.draw(context, program_state, model_transform_leg, this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,0)), this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(0,0,-10)), this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,-10)), this.materials.wood);
         }
 
         if(this.toggle.chair) {
