@@ -41,8 +41,6 @@ export class Assignment3 extends Scene {
             circle: new defs.Regular_2D_Polygon(1, 15),
             cube: new Cube(),
             cup: new Cylindrical_Tube(15,15),
-            // TODO:  Fill in as many additional shape instances as needed in this key/value table.
-            //        (Requirement 1)
         };
 
         // *** Materials
@@ -95,14 +93,14 @@ export class Assignment3 extends Scene {
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, .1, 1000);
 
-        const light_position = vec4(4, 3, 0, 1);
-        // The parameters of the Light are: position, color, size
-        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
-
-        // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 3 and 4)
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         const yellow = hex_color("#fac91a");
         let model_transform = Mat4.identity();
+        const light_rotation_matrix = Mat4.rotation(t, 0, 0, 1);
+        const light_position = light_rotation_matrix.times(vec4(20, 6, 0, 1));
+
+        // The parameters of the Light are: position, color, size
+        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
         // drawing the sun
         const white = hex_color("#ffffff");
@@ -110,40 +108,40 @@ export class Assignment3 extends Scene {
         const sun_color = color(1, (sun_radius / 2 - 0.5), (sun_radius / 2 - 0.5), 1);
         //this.shapes.torus.draw(context, program_state, model_transform, this.materials.test.override({color: yellow}));
 
-        let model_transform_sun = model_transform//.times(Mat4.rotation(t / 5,0,0,1))
-            .times(Mat4.scale(3, 3, 3))
-            .times(Mat4.translation(4,3,0));
+        let model_transform_sun = model_transform.times(light_rotation_matrix)
+            .times(Mat4.scale(2, 2, 2))
+            .times(Mat4.translation(10,3,0));
         this.shapes.sphere4.draw(context, program_state, model_transform_sun, this.materials.sun.override({color: sun_color}));
 
         // drawing the light
-        const light_size = 50 * sun_radius;
+        const light_size = 5000 * sun_radius;
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), light_size)];
 
         // Table
-        let model_transform_leg = model_transform.times(Mat4.translation(-10,-6,0))
+        let model_transform_leg = model_transform.times(Mat4.translation(0, -6, 0))
             .times(Mat4.scale(0.5,3,0.5));
-        let model_transform_counter = model_transform.times(Mat4.translation(-12.5, -2.5,-2.5))
+        let model_transform_counter = model_transform.times(Mat4.translation(-2.5, -2.5, -2.5))
             .times(Mat4.scale(8,0.5,5));
 
         // Chair
-        let model_transform_ch_leg = model_transform.times(Mat4.translation(2,-7,1))
+        let model_transform_ch_leg = model_transform.times(Mat4.translation(12, -7, 1))
             .times(Mat4.scale(0.5,2,0.5));
-        let model_transform_seat = model_transform.times(Mat4.translation(0.5, -4.75,-1))
+        let model_transform_seat = model_transform.times(Mat4.translation(10.5, -4.75, -1))
             .times(Mat4.scale(3,0.3,3));
-        let model_transform_back = model_transform.times(Mat4.translation(3.2,-1,-1))
+        let model_transform_back = model_transform.times(Mat4.translation(13.2, -1, -1))
             .times(Mat4.scale(0.3, 4,3));
-        let model_transform_arm = model_transform.times(Mat4.translation(-2.2, -3.5, 1.7))
+        let model_transform_arm = model_transform.times(Mat4.translation(-7.8, -3.5, 1.7))
             .times(Mat4.scale(0.3,1,0.3));
-        let model_transform_armrest = model_transform.times(Mat4.translation(0.5,-2.25,1.7))
+        let model_transform_armrest = model_transform.times(Mat4.translation(10.5, -2.25, 1.7))
             .times(Mat4.scale(3,0.3,0.3));
 
         // Book
-        let model_transform_book1 = model_transform.times(Mat4.translation(-13, -1.8, 0))
+        let model_transform_book1 = model_transform.times(Mat4.translation(-3, -1.8, 0))
             .times(Mat4.scale(1, 0.15, 1.5));
         let model_transform_book1_bottom = model_transform_book1.times(Mat4.scale(1.1, 0.2, 1.1))
             .times(Mat4.translation(0.05, -6, 0));
         let model_transform_book1_top = model_transform_book1_bottom.times(Mat4.translation(0, 12, 0));
-        let model_transform_book1_binding = model_transform.times(Mat4.translation(-13.945, -1.8, 0))
+        let model_transform_book1_binding = model_transform.times(Mat4.translation(-3.945, -1.8, 0))
             .times(Mat4.scale(0.10, 0.16, 1.65));
 
         // Mug
@@ -153,6 +151,12 @@ export class Assignment3 extends Scene {
         let mug_base_model_transform = model_transform//.times(Mat4.scale(1,1,1))
                                                       .times(Mat4.rotation(4.71239,1,0,0))
                                                       .times(Mat4.translation(-7,0,-1.99)).times(Mat4.scale(0.68,0.68,1));
+
+        // Floor
+        let model_transform_floor = model_transform.times(Mat4.translation(0, -9, 0))
+            .times(Mat4.scale(40,0.1,20));
+
+        this.shapes.cube.draw(context, program_state, model_transform_floor, this.materials.ceramic)
 
         if(this.toggle.table) {
             this.shapes.cube.draw(context, program_state, model_transform_counter, this.materials.wood);
@@ -187,43 +191,6 @@ export class Assignment3 extends Scene {
              this.shapes.circle.draw(context, program_state, mug_base_model_transform, this.materials.ceramic);
         }
 
-/*
-        // drawing planet 1
-        let model_transform_mercury = model_transform.times(Mat4.rotation(t, 0, 1, 0))
-            .times(Mat4.translation(5, 0, 0));
-        this.planet_1 = model_transform_mercury;
-        this.shapes.sphere2.draw(context, program_state, model_transform_mercury, this.materials.mercury);
-
-        // drawing planet 2
-        let model_transform_venus = model_transform.times(Mat4.rotation(t / 1.2, 0, 1, 0))
-            .times(Mat4.translation(8, 0, 0));
-        this.planet_2 = model_transform_venus;
-        if (Math.floor(t ) % 2 == 0) {
-            this.shapes.sphere3.draw(context, program_state, model_transform_venus, this.materials.venus_phong);
-        }
-        else {
-            this.shapes.sphere3.draw(context, program_state, model_transform_venus, this.materials.venus_gouraud);
-        }
-
-        // drawing planet 3
-        let model_transform_saturn = model_transform.times(Mat4.rotation(t / 1.4, 0, 1, 0))
-            .times(Mat4.translation(11, 0, 0));
-        this.planet_3 = model_transform_saturn;
-        model_transform_saturn = model_transform_saturn.times(Mat4.rotation(t / 1.4, 1, 0.5, 0.4));
-        let model_transform_saturn_ring = model_transform_saturn.times(Mat4.scale(3,3,0.1));
-        this.shapes.sphere4.draw(context, program_state, model_transform_saturn, this.materials.saturn);
-        this.shapes.torus.draw(context, program_state, model_transform_saturn_ring, this.materials.saturn_ring);
-
-        // drawing planet 4
-        let model_transform_neptune = model_transform.times(Mat4.rotation(t / 1.6, 0, 1, 0))
-            .times(Mat4.translation(14, 0, 0));
-        let model_transform_moon = model_transform_neptune.times(Mat4.rotation(t , 0, 1, 0))
-            .times(Mat4.translation(2, 0, 0));
-        this.planet_4 = model_transform_neptune;
-        this.moon = model_transform_moon;
-        this.shapes.sphere4.draw(context, program_state, model_transform_neptune, this.materials.neptune);
-        this.shapes.sphere1.draw(context, program_state, model_transform_moon, this.materials.moon);
-*/
         // setting the camera
         if (this.attached) {
             if (this.attached() == this.initial_camera_location) {
