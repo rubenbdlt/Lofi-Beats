@@ -38,6 +38,7 @@ export class Assignment3 extends Scene {
             sphere2 : new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(2),
             sphere3: new defs.Subdivision_Sphere(3),
             sphere4: new defs.Subdivision_Sphere(4),
+            moon: new defs.Subdivision_Sphere(4),
             circle: new defs.Regular_2D_Polygon(1, 15),
             cube: new Cube(),
             cup: new Cylindrical_Tube(15,15),
@@ -50,6 +51,8 @@ export class Assignment3 extends Scene {
             ring: new Material(new Ring_Shader()),
             sun: new Material(new defs.Phong_Shader(),
                 {ambient: 1, color: hex_color("#ffffff")}),
+            moon: new Material(new defs.Phong_Shader(),
+                {ambient: 0, color: hex_color("#cacaca")}),
             book_filling: new Material(new defs.Phong_Shader(),
                 {ambient: 0.2, diffusivity: .6, color: hex_color("#ffffff")}),
             book_1_cover: new Material(new defs.Phong_Shader(),
@@ -67,7 +70,7 @@ export class Assignment3 extends Scene {
             mug: true,
         }
 
-        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
+        this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
     }
 
     make_control_panel() {
@@ -97,7 +100,7 @@ export class Assignment3 extends Scene {
         const yellow = hex_color("#fac91a");
         let model_transform = Mat4.identity();
         const light_rotation_matrix = Mat4.rotation(t, 0, 0, 1);
-        const light_position = light_rotation_matrix.times(vec4(20, 6, 0, 1));
+        const light_position = light_rotation_matrix.times(vec4(20, 6, -22, 1));
 
         // The parameters of the Light are: position, color, size
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
@@ -110,8 +113,13 @@ export class Assignment3 extends Scene {
 
         let model_transform_sun = model_transform.times(light_rotation_matrix)
             .times(Mat4.scale(2, 2, 2))
-            .times(Mat4.translation(10,3,0));
+            .times(Mat4.translation(10,3,-10));
         this.shapes.sphere4.draw(context, program_state, model_transform_sun, this.materials.sun.override({color: sun_color}));
+
+        let model_transform_moon = model_transform.times(light_rotation_matrix)
+            .times(Mat4.scale(2, 2, 2))
+            .times(Mat4.translation(-10,3,-10));
+        this.shapes.moon.draw(context, program_state, model_transform_moon, this.materials.moon);
 
         // drawing the light
         const light_size = 5000 * sun_radius;
@@ -130,7 +138,7 @@ export class Assignment3 extends Scene {
             .times(Mat4.scale(3,0.3,3));
         let model_transform_back = model_transform.times(Mat4.translation(13.2, -1, -1))
             .times(Mat4.scale(0.3, 4,3));
-        let model_transform_arm = model_transform.times(Mat4.translation(-7.8, -3.5, 1.7))
+        let model_transform_arm = model_transform.times(Mat4.translation(7.8, -3.5, 1.7))
             .times(Mat4.scale(0.3,1,0.3));
         let model_transform_armrest = model_transform.times(Mat4.translation(10.5, -2.25, 1.7))
             .times(Mat4.scale(3,0.3,0.3));
@@ -152,11 +160,35 @@ export class Assignment3 extends Scene {
                                                       .times(Mat4.rotation(4.71239,1,0,0))
                                                       .times(Mat4.translation(-7,0,-1.99)).times(Mat4.scale(0.68,0.68,1));
 
-        // Floor
+        // Room
         let model_transform_floor = model_transform.times(Mat4.translation(0, -9, 0))
-            .times(Mat4.scale(40,0.1,20));
+            .times(Mat4.scale(40,0.1,40));
+        let model_transform_ceiling = model_transform.times(Mat4.translation(0, 31, 0))
+            .times(Mat4.scale(40,0.1,40));
+        let model_transform_left_wall = model_transform.times(Mat4.translation(-40, 11, 0))
+            .times(Mat4.scale(0.1, 20, 40));
+        let model_transform_right_wall = model_transform.times(Mat4.translation(40, 11, 0))
+            .times(Mat4.scale(0.1, 20, 40));
+        let model_transform_front_wall = model_transform.times(Mat4.translation(0, 11, 40))
+            .times(Mat4.scale(40, 20, 0.1));
+        let model_transform_back_wall_top = model_transform.times(Mat4.translation(0, 26, -15))
+            .times(Mat4.scale(20, 5, 0.1));
+        let model_transform_back_wall_right = model_transform.times(Mat4.translation(30, 11, -15))
+            .times(Mat4.scale(10, 20, 0.1));
+        let model_transform_back_wall_bottom = model_transform.times(Mat4.translation(0, -4, -15))
+            .times(Mat4.scale(20, 5, 0.1));
+        let model_transform_back_wall_left = model_transform.times(Mat4.translation(-30, 11, -15))
+            .times(Mat4.scale(10, 20, 0.1));
 
-        this.shapes.cube.draw(context, program_state, model_transform_floor, this.materials.ceramic)
+        this.shapes.cube.draw(context, program_state, model_transform_floor, this.materials.ceramic);
+        this.shapes.cube.draw(context, program_state, model_transform_ceiling, this.materials.ceramic);
+        this.shapes.cube.draw(context, program_state, model_transform_left_wall, this.materials.ceramic);
+        this.shapes.cube.draw(context, program_state, model_transform_right_wall, this.materials.ceramic);
+        this.shapes.cube.draw(context, program_state, model_transform_front_wall, this.materials.ceramic);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_top, this.materials.ceramic);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_right, this.materials.ceramic);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_bottom, this.materials.ceramic);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_left, this.materials.ceramic);
 
         if(this.toggle.table) {
             this.shapes.cube.draw(context, program_state, model_transform_counter, this.materials.wood);
