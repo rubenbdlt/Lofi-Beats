@@ -118,6 +118,13 @@ export class Assignment3 extends Scene {
         this.bmetal = new Material(new Shadow_Textured_Phong_Shader(),
              {ambient: 0.6, diffusivity: 0.6, specularity: 0.7, color: color(0,0,0,1)}),
 
+        // painting 1
+        this.painting_1 = new Material(new Textured_Phong(), {
+                 color: color(0,0,0,1),
+                 ambient: 1, diffusivity: 0.1, specularity: 0.1,
+                 texture: new Texture("assets/squidward.jpeg", "NEAREST")
+             })
+
         // ---------------------------------------------------------------------------------
 
         // To make sure texture initialization only does once
@@ -131,10 +138,8 @@ export class Assignment3 extends Scene {
             mug: true,
             computer: true,
         }
-
+        
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
-        this.pov2 = Mat4.translation(0, 0, -8);
-        this.pov3 = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
     }
 
     make_control_panel() {
@@ -146,10 +151,6 @@ export class Assignment3 extends Scene {
         this.new_line();
         this.key_triggered_button("Toggle Computer", ["Control", "4"], () => this.toggle.computer = !this.toggle.computer);
         this.key_triggered_button("Return to Original View", ["Control", "5"], () => this.attached = () => this.initial_camera_location);
-        this.new_line();
-        this.key_triggered_button("Switch to POV 2", ["Control", "6"], () => this.attached = () => this.pov2);
-        this.new_line();
-        this.key_triggered_button("Switch to POV 3", ["Control", "7"], () => this.attached = () => this.pov3);
     }
 
     texture_buffer_init(gl) {
@@ -345,6 +346,28 @@ export class Assignment3 extends Scene {
              .times(Mat4.translation(-0.2, 0.1, -2.8))
              .times(Mat4.scale(0.45,0.2,3.425));
 
+        // Painting 1
+        let painting_1_model_transform = model_transform.times(Mat4.translation(27,8,-14.89)).times(Mat4.scale(6,8,1,0));
+
+        this.shapes.square_2d.draw(context, program_state, painting_1_model_transform, this.painting_1);
+
+        // Shelf 1
+        let shelf_1_model_transform = model_transform.times(Mat4.translation(30, 3.5, -12.4))
+            .times(Mat4.scale(8,0.5,2.5));
+        let shelf_back_model_transform = model_transform.times(Mat4.translation(30, -2, -14.6))
+            .times(Mat4.scale(8,6.05,0.3));
+        let shelf_side_model_transform = model_transform.times(Mat4.translation(22, -2.5, -12.4))
+        .times(Mat4.scale(0.3,6.55,2.55));
+
+        this.shapes.cube.draw(context, program_state, shelf_1_model_transform, shadow_pass? this.wood : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_1_model_transform.times(Mat4.translation(0,-8,0)), shadow_pass? this.wood : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_1_model_transform.times(Mat4.translation(0,-16,0)), shadow_pass? this.wood : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_1_model_transform.times(Mat4.translation(0,-24,0)), shadow_pass? this.wood : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_back_model_transform, shadow_pass? this.wood.override({color: color(0.88,0.43,0.38,1)}) : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_side_model_transform, shadow_pass? this.wood.override({color: color(0.88,0.43,0.38,1)}) : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_side_model_transform.times(Mat4.translation(53.5,0,0)), shadow_pass? this.wood.override({color: color(0.88,0.43,0.38,1)}) : this.pure);
+        // End Shelf 1
+
         this.shapes.cube.draw(context, program_state, model_transform_floor, shadow_pass? this.ceramic : this.pure);
         this.shapes.cube.draw(context, program_state, model_transform_ceiling, shadow_pass? this.ceramic : this.pure);
         this.shapes.cube.draw(context, program_state, model_transform_left_wall, shadow_pass? this.ceramic : this.pure);
@@ -431,6 +454,7 @@ export class Assignment3 extends Scene {
         const light_rotation_matrix = Mat4.rotation(t/1000, 0, 0, 1);
         const light_position = light_rotation_matrix.times(vec4(20, 6, -22, 1));
         this.light_position = light_position;
+    
         // ----------------------------------------------------------------------------------------
 
         // The position of the light
@@ -451,17 +475,6 @@ export class Assignment3 extends Scene {
         this.light_field_of_view = 130 * Math.PI / 180; // 130 degree
 
         program_state.lights = [new Light(this.light_position, this.light_color, 1000)];
-
-        // --------------------------------------------------------------------------------------------
-        // drawing the sun
-        //const sun_radius = 2 + Math.sin(2 * Math.PI * t / 10);
-        //const sun_color = color(1, (sun_radius / 2 - 0.5), (sun_radius / 2 - 0.5), 1);
-        //let model_transform = Mat4.identity();
-        //let model_transform_sun = model_transform.times(light_rotation_matrix)
-        //    .times(Mat4.scale(2, 2, 2))
-        //    .times(Mat4.translation(10,3,-10));
-        //this.shapes.sphere4.draw(context, program_state, model_transform_sun, this.materials.sun.override({color: sun_color}));
-        // --------------------------------------------------------------------------------------------
 
         // Step 1: set the perspective and camera to the POV of light
         const light_view_mat = Mat4.look_at(
