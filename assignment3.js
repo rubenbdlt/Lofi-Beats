@@ -1,13 +1,13 @@
 import {defs, tiny} from './examples/common.js';
 
 const {
-    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene,
+    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture,
 } = tiny;
 // Makes these shapes usable
-const {Triangle, Square, Tetrahedron, Windmill, Cylindrical_Tube} = defs;
+const {Cube, Triangle, Square, Tetrahedron, Windmill, Cylindrical_Tube, Textured_Phong} = defs;
 
 
-class Cube extends Shape {
+/*class Cube extends Shape {
     constructor() {
         super("position", "normal",);
         // Loop 3 times (for each axis), and inside loop twice (for opposing cube sides):
@@ -23,7 +23,7 @@ class Cube extends Shape {
         this.indices.push(0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13,
             14, 13, 15, 14, 16, 17, 18, 17, 19, 18, 20, 21, 22, 21, 23, 22);
     }
-}
+}*/
 
 export class Assignment3 extends Scene {
     constructor() {
@@ -42,7 +42,9 @@ export class Assignment3 extends Scene {
             circle: new defs.Regular_2D_Polygon(1, 15),
             cube: new Cube(),
             cup: new Cylindrical_Tube(15,15),
+            comps: new Cube(),
         };
+        console.log(this.shapes.comps.arrays.texture_coord)
 
         // *** Materials
         this.materials = {
@@ -61,6 +63,13 @@ export class Assignment3 extends Scene {
                 {ambient: 0.2, diffusivity: 0.8, specularity: 0.3, color: hex_color("#663300")}),
             ceramic: new Material(new defs.Phong_Shader(),
                 {ambient: 0.7, diffusivity: 0.6, specularity: 0.3, color: color(1,0.95,0.9,1)}),
+            screen: new Material(new Textured_Phong(), {
+                color: hex_color("#000000"),
+                ambient: 1, diffusivity: 0.1, specularity: 0.1,
+                texture: new Texture("assets/lofi.png", "NEAREST")
+            }),
+            bmetal: new Material(new defs.Phong_Shader(),
+                {ambient: 0.6, diffusivity: 0.6, specularity: 0.7, color: hex_color("#000000")}),
         }
 
         this.toggle = {
@@ -68,6 +77,7 @@ export class Assignment3 extends Scene {
             book: true,
             chair: true,
             mug: true,
+            computer: true,
         }
 
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
@@ -81,6 +91,7 @@ export class Assignment3 extends Scene {
         this.new_line();
         this.key_triggered_button("Toggle Book", ["Control", "2"], () => this.toggle.book = !this.toggle.book);
         this.key_triggered_button("Toggle Mug", ["Control", "3"], () => this.toggle.mug = !this.toggle.mug);
+        this.key_triggered_button("Toggle Computer", ["Control", "4"], () => this.toggle.computer = !this.toggle.computer);
 
     }
 
@@ -180,6 +191,33 @@ export class Assignment3 extends Scene {
         let model_transform_back_wall_left = model_transform.times(Mat4.translation(-30, 11, -15))
             .times(Mat4.scale(10, 20, 0.1));
 
+        // Computer
+        let model_transform_screen = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+            .times(Mat4.translation(0, 2.3, -2.8))
+            .times(Mat4.scale(0.2,2,3));
+        let model_transform_monitor_back = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+            .times(Mat4.translation(-0.4, 2.3, -2.8))
+            .times(Mat4.scale(0.3,2.1,3));
+        let model_transform_monitor_stand = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+            .times(Mat4.translation(-0.2, -1, -2.8))
+            .times(Mat4.scale(0.2,1.2,0.5));
+        let model_transform_monitor_base = model_transform.times(Mat4.rotation(Math.PI / 2, 1,0,0))
+            .times(Mat4.rotation(Math.PI / 4, 0,0,1))
+            .times(Mat4.translation(-0.4, -3, 1.99))
+            .times(Mat4.scale(2,2.6,10));
+        let model_transform_monitor_left = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+            .times(Mat4.translation(-0.23, 2.35, 0.4 ))
+            .times(Mat4.scale(0.45,2.1,0.2));
+        let model_transform_monitor_right = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+            .times(Mat4.translation(-0.23, 2.35, -6 ))
+            .times(Mat4.scale(0.45,2.1,0.2));
+        let model_transform_monitor_above = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+            .times(Mat4.translation(-0.2, 4.5, -2.8))
+            .times(Mat4.scale(0.45,0.2,3.425));
+        let model_transform_monitor_below = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+            .times(Mat4.translation(-0.2, 0.1, -2.8))
+            .times(Mat4.scale(0.45,0.2,3.425));
+
         this.shapes.cube.draw(context, program_state, model_transform_floor, this.materials.ceramic);
         this.shapes.cube.draw(context, program_state, model_transform_ceiling, this.materials.ceramic);
         this.shapes.cube.draw(context, program_state, model_transform_left_wall, this.materials.ceramic);
@@ -222,6 +260,17 @@ export class Assignment3 extends Scene {
              this.shapes.cup.draw(context, program_state, mug_model_transform, this.materials.ceramic);
              this.shapes.circle.draw(context, program_state, mug_base_model_transform, this.materials.ceramic);
         }
+
+        if(this.toggle.computer) {
+            this.shapes.comps.draw(context, program_state, model_transform_screen, this.materials.screen);
+            this.shapes.cube.draw(context, program_state, model_transform_monitor_back, this.materials.bmetal);
+            this.shapes.cube.draw(context, program_state, model_transform_monitor_left, this.materials.bmetal);
+            this.shapes.cube.draw(context, program_state, model_transform_monitor_right, this.materials.bmetal);
+            this.shapes.cube.draw(context, program_state, model_transform_monitor_above, this.materials.bmetal);
+            this.shapes.cube.draw(context, program_state, model_transform_monitor_below, this.materials.bmetal);
+            this.shapes.cube.draw(context, program_state, model_transform_monitor_stand, this.materials.bmetal);
+            this.shapes.circle.draw(context,program_state,model_transform_monitor_base,this.materials.bmetal);
+           }
 
         // setting the camera
         if (this.attached) {
