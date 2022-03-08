@@ -308,24 +308,24 @@ export class Assignment3 extends Scene {
                                                       .times(Mat4.translation(-7,0,-1.89)).times(Mat4.scale(0.68,0.68,1));
 
         // Room
-        let model_transform_floor = model_transform.times(Mat4.translation(0, -9, 0))
-            .times(Mat4.scale(40,0.1,40));
+        let model_transform_floor = model_transform.times(Mat4.translation(0, -9.7, 0))
+            .times(Mat4.scale(40,0.7,40));
         let model_transform_ceiling = model_transform.times(Mat4.translation(0, 31, 0))
-            .times(Mat4.scale(40,0.1,40));
+            .times(Mat4.scale(40,0.7,40));
         let model_transform_left_wall = model_transform.times(Mat4.translation(-40, 11, 0))
-            .times(Mat4.scale(0.1, 20, 40));
+            .times(Mat4.scale(0.7, 20, 40));
         let model_transform_right_wall = model_transform.times(Mat4.translation(40, 11, 0))
-            .times(Mat4.scale(0.1, 20, 40));
+            .times(Mat4.scale(0.7, 20, 40));
         let model_transform_front_wall = model_transform.times(Mat4.translation(0, 11, 40))
-            .times(Mat4.scale(40, 20, 0.1));
-        let model_transform_back_wall_top = model_transform.times(Mat4.translation(0, 26, -15))
-            .times(Mat4.scale(20, 5, 0.1));
-        let model_transform_back_wall_right = model_transform.times(Mat4.translation(30, 11, -15))
-            .times(Mat4.scale(10, 20, 0.1));
-        let model_transform_back_wall_bottom = model_transform.times(Mat4.translation(0, -4, -15))
-            .times(Mat4.scale(20, 5, 0.1));
-        let model_transform_back_wall_left = model_transform.times(Mat4.translation(-30, 11, -15))
-            .times(Mat4.scale(10, 20, 0.1));
+            .times(Mat4.scale(40, 20, 0.7));
+        let model_transform_back_wall_top = model_transform.times(Mat4.translation(0, 26, -15.6))
+            .times(Mat4.scale(20, 5, 0.7));
+        let model_transform_back_wall_right = model_transform.times(Mat4.translation(30, 11, -15.6))
+            .times(Mat4.scale(10, 20, 0.7));
+        let model_transform_back_wall_bottom = model_transform.times(Mat4.translation(0, -4, -15.6))
+            .times(Mat4.scale(20, 5, 0.7));
+        let model_transform_back_wall_left = model_transform.times(Mat4.translation(-30, 11, -15.6))
+            .times(Mat4.scale(10, 20, 0.7));
 
          // Computer
          let model_transform_screen = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
