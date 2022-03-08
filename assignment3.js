@@ -1,6 +1,6 @@
 import {defs, tiny} from './examples/common.js';
 // Pull these names into this module's scope for convenience:
-const {vec3, vec4, vec, color, Matrix, Mat4, Light, Shape, Material, Shader, Texture, Scene} = tiny;
+const {Vector, vec3, vec4, vec, color, Matrix, Mat4, Light, Shape, Material, Shader, Texture, Scene} = tiny;
 const {Cube, Axis_Arrows, Textured_Phong, Phong_Shader, Basic_Shader, Subdivision_Sphere, Cylindrical_Tube} = defs
 
 import {Shape_From_File} from './examples/obj-file-demo.js'
@@ -133,16 +133,23 @@ export class Assignment3 extends Scene {
         }
 
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
+        this.pov2 = Mat4.translation(0, 0, -8);
+        this.pov3 = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
     }
 
     make_control_panel() {
         this.key_triggered_button("Toggle Table", ["Control", "0"], () => this.toggle.table = !this.toggle.table);
-        this.new_line();
         this.key_triggered_button("Toggle Chair", ["Control", "1"], () => this.toggle.chair = !this.toggle.chair);
         this.new_line();
         this.key_triggered_button("Toggle Book", ["Control", "2"], () => this.toggle.book = !this.toggle.book);
         this.key_triggered_button("Toggle Mug", ["Control", "3"], () => this.toggle.mug = !this.toggle.mug);
+        this.new_line();
         this.key_triggered_button("Toggle Computer", ["Control", "4"], () => this.toggle.computer = !this.toggle.computer);
+        this.key_triggered_button("Return to Original View", ["Control", "5"], () => this.attached = () => this.initial_camera_location);
+        this.new_line();
+        this.key_triggered_button("Switch to POV 2", ["Control", "6"], () => this.attached = () => this.pov2);
+        this.new_line();
+        this.key_triggered_button("Switch to POV 3", ["Control", "7"], () => this.attached = () => this.pov3);
     }
 
     texture_buffer_init(gl) {
@@ -482,14 +489,6 @@ export class Assignment3 extends Scene {
         program_state.projection_transform = Mat4.perspective(Math.PI / 4, context.width / context.height, 0.5, 500);
         this.render_scene(context, program_state, true,true, true);
 
-        // Step 3: display the textures
-        this.shapes.square_2d.draw(context, program_state,
-            Mat4.translation(-.99, .08, 0).times(
-            Mat4.scale(0.5, 0.5 * gl.canvas.width / gl.canvas.height, 1)
-            ),
-            this.depth_tex.override({texture: this.lightDepthTexture})
-        );
-
         // ------------------------
         // setting the camera
         if (this.attached) {
@@ -498,8 +497,7 @@ export class Assignment3 extends Scene {
                 program_state.set_camera(smoothed);
             }
             else {
-                let desired = this.attached().times(Mat4.translation(0, 0, 5));
-                desired = Mat4.inverse(desired);
+                let desired = Mat4.inverse(this.attached());
                 let smoothed = desired.map((x,i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1));
                 program_state.set_camera(smoothed);
 
