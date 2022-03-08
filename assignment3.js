@@ -151,6 +151,7 @@ export class Assignment3 extends Scene {
         this.new_line();
         this.key_triggered_button("Toggle Computer", ["Control", "4"], () => this.toggle.computer = !this.toggle.computer);
         this.key_triggered_button("Return to Original View", ["Control", "5"], () => this.attached = () => this.initial_camera_location);
+        this.key_triggered_button("Switch to Light's POV", ["Control", "6"], () => this.attached = () => this.light_pov);
     }
 
     texture_buffer_init(gl) {
@@ -454,7 +455,6 @@ export class Assignment3 extends Scene {
         const light_rotation_matrix = Mat4.rotation(t/1000, 0, 0, 1);
         const light_position = light_rotation_matrix.times(vec4(20, 6, -22, 1));
         this.light_position = light_position;
-    
         // ----------------------------------------------------------------------------------------
 
         // The position of the light
@@ -503,6 +503,10 @@ export class Assignment3 extends Scene {
         this.render_scene(context, program_state, true,true, true);
 
         // ------------------------
+
+        this.light_pov = light_view_mat.times(Mat4.translation(0,0,-4));
+
+
         // setting the camera
         if (this.attached) {
             if (this.attached() == this.initial_camera_location) {
@@ -510,12 +514,13 @@ export class Assignment3 extends Scene {
                 program_state.set_camera(smoothed);
             }
             else {
-                let desired = Mat4.inverse(this.attached());
+                let desired = this.attached();
                 let smoothed = desired.map((x,i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1));
                 program_state.set_camera(smoothed);
 
             }
         }
+        //program_state.set_camera(light_view_mat.times(Mat4.translation(0,0,-4)));  
         // ----------------------------
     }
 
