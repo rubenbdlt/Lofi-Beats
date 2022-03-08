@@ -41,13 +41,16 @@ export class Assignment3 extends Scene {
             circle: new defs.Regular_2D_Polygon(1, 15),
             sphere4: new defs.Subdivision_Sphere(4),
             comps: new Cube(),
+            moon: new defs.Subdivision_Sphere(4),
         };
 
         console.log(this.shapes.comps.arrays.texture_coord)
 
         this.materials = {
             sun: new Material(new defs.Phong_Shader(),
-                {ambient: 1, color: color(1,1,1,1)}),   
+                {ambient: 1, color: color(1,1,1,1)}), 
+            moon: new Material(new defs.Phong_Shader(),
+                 {ambient: 0, color: color(0.792, 0.792, 0.792, 1)}),  
         }
 
         // For the teapot
@@ -238,18 +241,23 @@ export class Assignment3 extends Scene {
 
         // --------------------------------------------------------------------------------------------
         const light_rotation_matrix = Mat4.rotation(t, 0, 0, 1);
-
+        let model_transform = Mat4.identity();
         // drawing the sun
         if (draw_light_source && shadow_pass)
         {
             const sun_radius = 2 + Math.sin(2 * Math.PI * t / 10);
             const sun_color = color(1, (sun_radius / 2 - 0.5), (sun_radius / 2 - 0.5), 1);
-            let model_transform = Mat4.identity();
             let model_transform_sun = model_transform.times(light_rotation_matrix)
                 .times(Mat4.scale(2, 2, 2))
                 .times(Mat4.translation(10,3,-10));
             this.shapes.sphere4.draw(context, program_state, model_transform_sun, this.materials.sun.override({color: sun_color}));
         }
+
+        // drawing the moon
+        let model_transform_moon = model_transform.times(light_rotation_matrix)
+             .times(Mat4.scale(2, 2, 2))
+             .times(Mat4.translation(-10,3,-10));
+         this.shapes.moon.draw(context, program_state, model_transform_moon, this.materials.moon);
         // --------------------------------------------------------------------------------------------
 
 
@@ -263,7 +271,6 @@ export class Assignment3 extends Scene {
 
 
         // ------------------------------------------------------------------------------------------
-        let model_transform = Mat4.identity();
 
         // Table
         let model_transform_leg = model_transform.times(Mat4.translation(0, -6, 0))
@@ -456,18 +463,9 @@ export class Assignment3 extends Scene {
         const light_position = light_rotation_matrix.times(vec4(20, 6, -22, 1));
         this.light_position = light_position;
         // ----------------------------------------------------------------------------------------
-
-        // The position of the light
-        //this.light_position = Mat4.rotation(t / 1000, 0, 1, 0).times(vec4(3, 6, 0, 1));
-
-
-        // The color of the light
-        this.light_color = color(
-            0.667 + Math.sin(t/500) / 3,
-            0.667 + Math.sin(t/1500) / 3,
-            0.667 + Math.sin(t/3500) / 3,
-            1
-        );
+        
+        const sun_radius = 2 + Math.sin(2 * Math.PI * t / 10000);
+        this.light_color = color(1, (sun_radius / 2 - 0.5), (sun_radius / 2 - 0.5), 1);
 
         // This is a rough target of the light.
         // Although the light is point light, we need a target to set the POV of the light
