@@ -40,7 +40,10 @@ export class Assignment3 extends Scene {
             cup: new Cylindrical_Tube(15,15),
             circle: new defs.Regular_2D_Polygon(1, 15),
             sphere4: new defs.Subdivision_Sphere(4),
+            comps: new Cube(),
         };
+
+        console.log(this.shapes.comps.arrays.texture_coord)
 
         this.materials = {
             sun: new Material(new defs.Phong_Shader(),
@@ -103,6 +106,17 @@ export class Assignment3 extends Scene {
             color_texture: null,
             light_depth_texture: null
         }),
+        
+        // screen
+        this.screen = new Material(new Textured_Phong(), {
+                 color: color(0,0,0,1),
+                 ambient: 1, diffusivity: 0.1, specularity: 0.1,
+                 texture: new Texture("assets/lofi.png", "NEAREST")
+             }),
+
+        // metal
+        this.bmetal = new Material(new Shadow_Textured_Phong_Shader(),
+             {ambient: 0.6, diffusivity: 0.6, specularity: 0.7, color: color(0,0,0,1)}),
 
         // ---------------------------------------------------------------------------------
 
@@ -115,6 +129,7 @@ export class Assignment3 extends Scene {
             book: true,
             chair: true,
             mug: true,
+            computer: true,
         }
 
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
@@ -127,6 +142,7 @@ export class Assignment3 extends Scene {
         this.new_line();
         this.key_triggered_button("Toggle Book", ["Control", "2"], () => this.toggle.book = !this.toggle.book);
         this.key_triggered_button("Toggle Mug", ["Control", "3"], () => this.toggle.mug = !this.toggle.mug);
+        this.key_triggered_button("Toggle Computer", ["Control", "4"], () => this.toggle.computer = !this.toggle.computer);
     }
 
     texture_buffer_init(gl) {
@@ -295,6 +311,33 @@ export class Assignment3 extends Scene {
         let model_transform_back_wall_left = model_transform.times(Mat4.translation(-30, 11, -15))
             .times(Mat4.scale(10, 20, 0.1));
 
+         // Computer
+         let model_transform_screen = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(0, 2.3, -2.8))
+             .times(Mat4.scale(0.2,2,3));
+         let model_transform_monitor_back = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.4, 2.3, -2.8))
+             .times(Mat4.scale(0.3,2.1,3));
+         let model_transform_monitor_stand = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.2, -1, -2.8))
+             .times(Mat4.scale(0.2,1.2,0.5));
+         let model_transform_monitor_base = model_transform.times(Mat4.rotation(Math.PI / 2, 1,0,0))
+             .times(Mat4.rotation(Math.PI / 4, 0,0,1))
+             .times(Mat4.translation(-0.4, -3, 1.99))
+             .times(Mat4.scale(2,2.6,10));
+         let model_transform_monitor_left = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.23, 2.35, 0.4 ))
+             .times(Mat4.scale(0.45,2.1,0.2));
+         let model_transform_monitor_right = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.23, 2.35, -6 ))
+             .times(Mat4.scale(0.45,2.1,0.2));
+         let model_transform_monitor_above = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.2, 4.5, -2.8))
+             .times(Mat4.scale(0.45,0.2,3.425));
+         let model_transform_monitor_below = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.2, 0.1, -2.8))
+             .times(Mat4.scale(0.45,0.2,3.425));
+
         this.shapes.cube.draw(context, program_state, model_transform_floor, shadow_pass? this.ceramic : this.pure);
         this.shapes.cube.draw(context, program_state, model_transform_ceiling, shadow_pass? this.ceramic : this.pure);
         this.shapes.cube.draw(context, program_state, model_transform_left_wall, shadow_pass? this.ceramic : this.pure);
@@ -336,6 +379,17 @@ export class Assignment3 extends Scene {
         if(this.toggle.mug) {
              this.shapes.cup.draw(context, program_state, mug_model_transform, shadow_pass? this.ceramic : this.pure);
              this.shapes.circle.draw(context, program_state, mug_base_model_transform, shadow_pass? this.ceramic : this.pure);
+        }
+
+        if(this.toggle.computer) {
+             this.shapes.comps.draw(context, program_state, model_transform_screen, this.screen);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_back, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_left, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_right, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_above, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_below, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_stand, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.circle.draw(context,program_state,model_transform_monitor_base, shadow_pass ? this.bmetal : this.pure);
         }
 
         // -------------------------------------------------
