@@ -1,140 +1,279 @@
 import {defs, tiny} from './examples/common.js';
 
-const {
-    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture,
-} = tiny;
-// Makes these shapes usable
-const {Cube, Triangle, Square, Tetrahedron, Windmill, Cylindrical_Tube, Textured_Phong} = defs;
+// Pull these names into this module's scope for convenience:
+const {Vector, vec3, vec4, vec, color, Matrix, Mat4, Light, Shape, Material, Shader, Texture, Scene} = tiny;
+const {Cube, Axis_Arrows, Textured_Phong, Phong_Shader, Basic_Shader, Subdivision_Sphere, Cylindrical_Tube} = defs
 
+import {Shape_From_File} from './examples/obj-file-demo.js'
+import {Color_Phong_Shader, Shadow_Textured_Phong_Shader,
+    Depth_Texture_Shader_2D, Buffered_Texture, LIGHT_DEPTH_TEX_SIZE} from './examples/shadow-demo-shaders.js'
 
-/*class Cube extends Shape {
-    constructor() {
-        super("position", "normal",);
-        // Loop 3 times (for each axis), and inside loop twice (for opposing cube sides):
-        this.arrays.position = Vector3.cast(
-            [-1, -1, -1], [1, -1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [1, 1, 1], [-1, 1, 1],
-            [-1, -1, -1], [-1, -1, 1], [-1, 1, -1], [-1, 1, 1], [1, -1, 1], [1, -1, -1], [1, 1, 1], [1, 1, -1],
-            [-1, -1, 1], [1, -1, 1], [-1, 1, 1], [1, 1, 1], [1, -1, -1], [-1, -1, -1], [1, 1, -1], [-1, 1, -1]);
-        this.arrays.normal = Vector3.cast(
-            [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, -1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0],
-            [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0],
-            [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, -1], [0, 0, -1], [0, 0, -1], [0, 0, -1]);
-        // Arrange the vertices into a square shape in texture space too:
-        this.indices.push(0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13,
-            14, 13, 15, 14, 16, 17, 18, 17, 19, 18, 20, 21, 22, 21, 23, 22);
+// 2D shape, to display the texture buffer
+const Square =
+    class Square extends tiny.Vertex_Buffer {
+        constructor() {
+            super("position", "normal", "texture_coord");
+            this.arrays.position = [
+                vec3(0, 0, 0), vec3(1, 0, 0), vec3(0, 1, 0),
+                vec3(1, 1, 0), vec3(1, 0, 0), vec3(0, 1, 0)
+            ];
+            this.arrays.normal = [
+                vec3(0, 0, 1), vec3(0, 0, 1), vec3(0, 0, 1),
+                vec3(0, 0, 1), vec3(0, 0, 1), vec3(0, 0, 1),
+            ];
+            this.arrays.texture_coord = [
+                vec(0, 0), vec(1, 0), vec(0, 1),
+                vec(1, 1), vec(1, 0), vec(0, 1)
+            ]
+        }
     }
-}*/
 
+// The scene
 export class Assignment3 extends Scene {
     constructor() {
-        // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
         super();
-
-        // At the beginning of our program, load one of each of these shape definitions onto the GPU.
+        // Load the model file:
         this.shapes = {
-            torus: new defs.Torus(15, 15),
-            torus2: new defs.Torus(3, 15),
-            sphere1: new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1),
-            sphere2 : new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(2),
-            sphere3: new defs.Subdivision_Sphere(3),
-            sphere4: new defs.Subdivision_Sphere(4),
-            moon: new defs.Subdivision_Sphere(4),
-            circle: new defs.Regular_2D_Polygon(1, 15),
-            cube: new Cube(),
+            "teapot": new Shape_From_File("assets/teapot.obj"),
+            "sphere": new Subdivision_Sphere(6),
+            "cube": new Cube(),
+            "square_2d": new Square(),
             cup: new Cylindrical_Tube(15,15),
+            circle: new defs.Regular_2D_Polygon(1, 15),
+            sphere4: new defs.Subdivision_Sphere(4),
             comps: new Cube(),
+            moon: new defs.Subdivision_Sphere(4),
+
         };
         console.log(this.shapes.comps.arrays.texture_coord)
 
-        // *** Materials
+        console.log(this.shapes.comps.arrays.texture_coord)
+
         this.materials = {
-            test: new Material(new defs.Phong_Shader(),
-                {ambient: .1, diffusivity: .6, color: hex_color("#ffffff")}),
-            ring: new Material(new Ring_Shader()),
             sun: new Material(new defs.Phong_Shader(),
-                {ambient: 1, color: hex_color("#ffffff")}),
+                {ambient: 1, color: color(1,1,1,1)}), 
             moon: new Material(new defs.Phong_Shader(),
-                {ambient: 0, color: hex_color("#cacaca")}),
-            book_filling: new Material(new defs.Phong_Shader(),
-                {ambient: 0.2, diffusivity: .6, color: hex_color("#ffffff")}),
-            book_1_cover: new Material(new defs.Phong_Shader(),
-                {ambient: 0.2, diffusivity: .6, color: hex_color("#d70f0f")}),
-            wood: new Material(new defs.Phong_Shader(),
-                {ambient: 0.2, diffusivity: 0.8, specularity: 0.3, color: hex_color("#663300")}),
-            ceramic: new Material(new defs.Phong_Shader(),
-                {ambient: 0.7, diffusivity: 0.6, specularity: 0.3, color: color(1,0.95,0.9,1)}),
-            screen: new Material(new Textured_Phong(), {
-                color: hex_color("#000000"),
-                ambient: 1, diffusivity: 0.1, specularity: 0.1,
-                texture: new Texture("assets/lofi.png", "NEAREST")
-            }),
-            bmetal: new Material(new defs.Phong_Shader(),
-                {ambient: 0.6, diffusivity: 0.6, specularity: 0.7, color: hex_color("#000000")}),
+                 {ambient: 0, color: color(0.792, 0.792, 0.792, 1)}),  
         }
 
+        // For the teapot
+        this.stars = new Material(new Shadow_Textured_Phong_Shader(1), {
+            color: color(.5, .5, .5, 1),
+            ambient: .4, diffusivity: .5, specularity: .5,
+            color_texture: new Texture("assets/stars.png"),
+            light_depth_texture: null
+
+        });
+        // For the floor or other plain objects
+        this.floor = new Material(new Shadow_Textured_Phong_Shader(1), {
+            color: color(1, 1, 1, 1), ambient: .3, diffusivity: 0.6, specularity: 0.4, smoothness: 64,
+            color_texture: null,
+            light_depth_texture: null
+        })
+        // For the first pass
+        this.pure = new Material(new Color_Phong_Shader(), {
+        })
+        // For light source
+        this.light_src = new Material(new Phong_Shader(), {
+            color: color(1, 1, 1, 1), ambient: 1, diffusivity: 0, specularity: 0
+        });
+        // For depth texture display
+        this.depth_tex =  new Material(new Depth_Texture_Shader_2D(), {
+            color: color(0, 0, .0, 1),
+            ambient: 1, diffusivity: 0, specularity: 0, texture: null
+        });
+
+        // --------------------------------------------------------------------------------
+
+        // book_filling
+        this.book_filling = new Material(new Shadow_Textured_Phong_Shader(1),
+                {ambient: 0.2, diffusivity: .6, color: color(1,1,1,1), smoothness: 64,
+            color_texture: null,
+            light_depth_texture: null
+        }),
+
+        // book_1_cover
+        this.book_1_cover = new Material(new Shadow_Textured_Phong_Shader(1),
+                {ambient: 0.2, diffusivity: .6, color: color(0.8431, 0.0588, 0.0588,1), smoothness: 64,
+            color_texture: null,
+            light_depth_texture: null
+        }),
+
+        // wood
+        this.wood = new Material(new Shadow_Textured_Phong_Shader(1),
+                {ambient: 0.2, diffusivity: 0.8, specularity: 0.3, color: color(0.4,0.2,0,1), smoothness: 64,
+            color_texture: null,
+            light_depth_texture: null
+        }),
+
+        // ceramic
+        this.ceramic = new Material(new Shadow_Textured_Phong_Shader(1),
+                {ambient: 0.7, diffusivity: 0.6, specularity: 0.3, color: color(1,0.95,0.9,1), smoothness: 64,
+            color_texture: null,
+            light_depth_texture: null
+        }),
+        
+        // screen
+        this.screen = new Material(new Textured_Phong(), {
+                 color: color(0,0,0,1),
+                 ambient: 1, diffusivity: 0.1, specularity: 0.1,
+                 texture: new Texture("assets/lofi.png", "NEAREST")
+             }),
+
+        // metal
+        this.bmetal = new Material(new Shadow_Textured_Phong_Shader(),
+             {ambient: 0.6, diffusivity: 0.6, specularity: 0.7, color: color(0,0,0,1)}),
+
+        // painting 1
+        this.painting_1 = new Material(new Textured_Phong(), {
+                 color: color(0,0,0,1),
+                 ambient: 1, diffusivity: 0.1, specularity: 0.1,
+                 texture: new Texture("assets/squidward.jpeg", "NEAREST")
+             })
+
+        // ---------------------------------------------------------------------------------
+
+        // To make sure texture initialization only does once
+        this.init_ok = false;
+
         this.toggle = {
+            ball: true,
             table: true,
             book: true,
             chair: true,
             mug: true,
             computer: true,
         }
-
+        
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
     }
 
     make_control_panel() {
-        // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         this.key_triggered_button("Toggle Table", ["Control", "0"], () => this.toggle.table = !this.toggle.table);
-        this.new_line();
         this.key_triggered_button("Toggle Chair", ["Control", "1"], () => this.toggle.chair = !this.toggle.chair);
         this.new_line();
         this.key_triggered_button("Toggle Book", ["Control", "2"], () => this.toggle.book = !this.toggle.book);
         this.key_triggered_button("Toggle Mug", ["Control", "3"], () => this.toggle.mug = !this.toggle.mug);
+        this.new_line();
         this.key_triggered_button("Toggle Computer", ["Control", "4"], () => this.toggle.computer = !this.toggle.computer);
-
+        this.key_triggered_button("Return to Original View", ["Control", "5"], () => this.attached = () => this.initial_camera_location);
+        this.key_triggered_button("Switch to Light's POV", ["Control", "6"], () => this.attached = () => this.light_pov);
     }
 
-    display(context, program_state) {
-        // display():  Called once per frame of animation.
-        // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
-        if (!context.scratchpad.controls) {
-            this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
-            // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(this.initial_camera_location);
+    texture_buffer_init(gl) {
+        // Depth Texture
+        this.lightDepthTexture = gl.createTexture();
+        // Bind it to TinyGraphics
+        this.light_depth_texture = new Buffered_Texture(this.lightDepthTexture);
+        this.stars.light_depth_texture = this.light_depth_texture
+        this.floor.light_depth_texture = this.light_depth_texture
+
+        this.lightDepthTextureSize = LIGHT_DEPTH_TEX_SIZE;
+        gl.bindTexture(gl.TEXTURE_2D, this.lightDepthTexture);
+        gl.texImage2D(
+            gl.TEXTURE_2D,      // target
+            0,                  // mip level
+            gl.DEPTH_COMPONENT, // internal format
+            this.lightDepthTextureSize,   // width
+            this.lightDepthTextureSize,   // height
+            0,                  // border
+            gl.DEPTH_COMPONENT, // format
+            gl.UNSIGNED_INT,    // type
+            null);              // data
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        // Depth Texture Buffer
+        this.lightDepthFramebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.lightDepthFramebuffer);
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,       // target
+            gl.DEPTH_ATTACHMENT,  // attachment point
+            gl.TEXTURE_2D,        // texture target
+            this.lightDepthTexture,         // texture
+            0);                   // mip level
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // create a color texture of the same size as the depth texture
+        // see article why this is needed_
+        this.unusedTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, this.unusedTexture);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            this.lightDepthTextureSize,
+            this.lightDepthTextureSize,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null,
+        );
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // attach it to the framebuffer
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,        // target
+            gl.COLOR_ATTACHMENT0,  // attachment point
+            gl.TEXTURE_2D,         // texture target
+            this.unusedTexture,         // texture
+            0);                    // mip level
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    render_scene(context, program_state, shadow_pass, draw_light_source=false, draw_shadow=false) {
+        // shadow_pass: true if this is the second pass that draw the shadow.
+        // draw_light_source: true if we want to draw the light source.
+        // draw_shadow: true if we want to draw the shadow
+
+        let light_position = this.light_position;
+        let light_color = this.light_color;
+        const t = program_state.animation_time/1000;
+
+        program_state.draw_shadow = draw_shadow;
+        
+        //if (draw_light_source && shadow_pass) {
+        //    this.shapes.sphere.draw(context, program_state,
+        //        Mat4.translation(light_position[0], light_position[1], light_position[2]).times(Mat4.scale(.5,.5,.5)),
+        //        this.light_src.override({color: light_color}));
+        //}
+
+        // --------------------------------------------------------------------------------------------
+        const light_rotation_matrix = Mat4.rotation(t, 0, 0, 1);
+        let model_transform = Mat4.identity();
+        // drawing the sun
+        if (draw_light_source && shadow_pass)
+        {
+            const sun_radius = 2 + Math.sin(2 * Math.PI * t / 10);
+            const sun_color = color(1, (sun_radius / 2 - 0.5), (sun_radius / 2 - 0.5), 1);
+            let model_transform_sun = model_transform.times(light_rotation_matrix)
+                .times(Mat4.scale(2, 2, 2))
+                .times(Mat4.translation(10,3,-10));
+            this.shapes.sphere4.draw(context, program_state, model_transform_sun, this.materials.sun.override({color: sun_color}));
         }
 
-        program_state.projection_transform = Mat4.perspective(
-            Math.PI / 4, context.width / context.height, .1, 1000);
-
-        const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-        const yellow = hex_color("#fac91a");
-        let model_transform = Mat4.identity();
-        const light_rotation_matrix = Mat4.rotation(t, 0, 0, 1);
-        const light_position = light_rotation_matrix.times(vec4(20, 6, -22, 1));
-
-        // The parameters of the Light are: position, color, size
-        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
-
-        // drawing the sun
-        const white = hex_color("#ffffff");
-        const sun_radius = 2 + Math.sin(2 * Math.PI * t / 10);
-        const sun_color = color(1, (sun_radius / 2 - 0.5), (sun_radius / 2 - 0.5), 1);
-        //this.shapes.torus.draw(context, program_state, model_transform, this.materials.test.override({color: yellow}));
-
-        let model_transform_sun = model_transform.times(light_rotation_matrix)
-            .times(Mat4.scale(2, 2, 2))
-            .times(Mat4.translation(10,3,-10));
-        this.shapes.sphere4.draw(context, program_state, model_transform_sun, this.materials.sun.override({color: sun_color}));
-
+        // drawing the moon
         let model_transform_moon = model_transform.times(light_rotation_matrix)
-            .times(Mat4.scale(2, 2, 2))
-            .times(Mat4.translation(-10,3,-10));
-        this.shapes.moon.draw(context, program_state, model_transform_moon, this.materials.moon);
+             .times(Mat4.scale(2, 2, 2))
+             .times(Mat4.translation(-10,3,-10));
+         this.shapes.moon.draw(context, program_state, model_transform_moon, this.materials.moon);
+        // --------------------------------------------------------------------------------------------
 
-        // drawing the light
-        const light_size = 5000 * sun_radius;
-        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), light_size)];
+
+        // teapot
+        for (let i of [-1, 1]) { // Spin the 3D model shapes as well.
+            const model_transform = Mat4.translation(2 * i, 40, 0)
+                .times(Mat4.rotation(t, -1, 2, 0))
+                .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0));
+            this.shapes.teapot.draw(context, program_state, model_transform, shadow_pass? this.stars : this.pure);
+        }
+
+
+        // ------------------------------------------------------------------------------------------
 
         // Table
         let model_transform_leg = model_transform.times(Mat4.translation(0, -6, 0))
@@ -169,108 +308,203 @@ export class Assignment3 extends Scene {
                                                  .times(Mat4.translation(-10.295,0,-0.828));
         let mug_base_model_transform = model_transform//.times(Mat4.scale(1,1,1))
                                                       .times(Mat4.rotation(4.71239,1,0,0))
-                                                      .times(Mat4.translation(-7,0,-1.99)).times(Mat4.scale(0.68,0.68,1));
+                                                      .times(Mat4.translation(-7,0,-1.89)).times(Mat4.scale(0.68,0.68,1));
 
         // Room
-        let model_transform_floor = model_transform.times(Mat4.translation(0, -9, 0))
-            .times(Mat4.scale(40,0.1,40));
+        let model_transform_floor = model_transform.times(Mat4.translation(0, -9.7, 0))
+            .times(Mat4.scale(40,0.7,40));
         let model_transform_ceiling = model_transform.times(Mat4.translation(0, 31, 0))
-            .times(Mat4.scale(40,0.1,40));
+            .times(Mat4.scale(40,0.7,40));
         let model_transform_left_wall = model_transform.times(Mat4.translation(-40, 11, 0))
-            .times(Mat4.scale(0.1, 20, 40));
+            .times(Mat4.scale(0.7, 20, 40));
         let model_transform_right_wall = model_transform.times(Mat4.translation(40, 11, 0))
-            .times(Mat4.scale(0.1, 20, 40));
+            .times(Mat4.scale(0.7, 20, 40));
         let model_transform_front_wall = model_transform.times(Mat4.translation(0, 11, 40))
-            .times(Mat4.scale(40, 20, 0.1));
-        let model_transform_back_wall_top = model_transform.times(Mat4.translation(0, 26, -15))
-            .times(Mat4.scale(20, 5, 0.1));
-        let model_transform_back_wall_right = model_transform.times(Mat4.translation(30, 11, -15))
-            .times(Mat4.scale(10, 20, 0.1));
-        let model_transform_back_wall_bottom = model_transform.times(Mat4.translation(0, -4, -15))
-            .times(Mat4.scale(20, 5, 0.1));
-        let model_transform_back_wall_left = model_transform.times(Mat4.translation(-30, 11, -15))
-            .times(Mat4.scale(10, 20, 0.1));
+            .times(Mat4.scale(40, 20, 0.7));
+        let model_transform_back_wall_top = model_transform.times(Mat4.translation(0, 26, -15.6))
+            .times(Mat4.scale(20, 5, 0.7));
+        let model_transform_back_wall_right = model_transform.times(Mat4.translation(30, 11, -15.6))
+            .times(Mat4.scale(10, 20, 0.7));
+        let model_transform_back_wall_bottom = model_transform.times(Mat4.translation(0, -4, -15.6))
+            .times(Mat4.scale(20, 5, 0.7));
+        let model_transform_back_wall_left = model_transform.times(Mat4.translation(-30, 11, -15.6))
+            .times(Mat4.scale(10, 20, 0.7));
 
-        // Computer
-        let model_transform_screen = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
-            .times(Mat4.translation(0, 2.3, -2.8))
-            .times(Mat4.scale(0.2,2,3));
-        let model_transform_monitor_back = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
-            .times(Mat4.translation(-0.4, 2.3, -2.8))
-            .times(Mat4.scale(0.3,2.1,3));
-        let model_transform_monitor_stand = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
-            .times(Mat4.translation(-0.2, -1, -2.8))
-            .times(Mat4.scale(0.2,1.2,0.5));
-        let model_transform_monitor_base = model_transform.times(Mat4.rotation(Math.PI / 2, 1,0,0))
-            .times(Mat4.rotation(Math.PI / 4, 0,0,1))
-            .times(Mat4.translation(-0.4, -3, 1.99))
-            .times(Mat4.scale(2,2.6,10));
-        let model_transform_monitor_left = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
-            .times(Mat4.translation(-0.23, 2.35, 0.4 ))
-            .times(Mat4.scale(0.45,2.1,0.2));
-        let model_transform_monitor_right = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
-            .times(Mat4.translation(-0.23, 2.35, -6 ))
-            .times(Mat4.scale(0.45,2.1,0.2));
-        let model_transform_monitor_above = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
-            .times(Mat4.translation(-0.2, 4.5, -2.8))
-            .times(Mat4.scale(0.45,0.2,3.425));
-        let model_transform_monitor_below = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
-            .times(Mat4.translation(-0.2, 0.1, -2.8))
-            .times(Mat4.scale(0.45,0.2,3.425));
+         // Computer
+         let model_transform_screen = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(0, 2.3, -2.8))
+             .times(Mat4.scale(0.2,2,3));
+         let model_transform_monitor_back = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.4, 2.3, -2.8))
+             .times(Mat4.scale(0.3,2.1,3));
+         let model_transform_monitor_stand = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.2, -1, -2.8))
+             .times(Mat4.scale(0.2,1.2,0.5));
+         let model_transform_monitor_base = model_transform.times(Mat4.rotation(Math.PI / 2, 1,0,0))
+             .times(Mat4.rotation(Math.PI / 4, 0,0,1))
+             .times(Mat4.translation(-0.4, -3, 1.99))
+             .times(Mat4.scale(2,2.6,10));
+         let model_transform_monitor_left = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.23, 2.35, 0.4 ))
+             .times(Mat4.scale(0.45,2.1,0.2));
+         let model_transform_monitor_right = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.23, 2.35, -6 ))
+             .times(Mat4.scale(0.45,2.1,0.2));
+         let model_transform_monitor_above = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.2, 4.5, -2.8))
+             .times(Mat4.scale(0.45,0.2,3.425));
+         let model_transform_monitor_below = model_transform.times(Mat4.rotation(Math.PI / 4, 0,-1,0))
+             .times(Mat4.translation(-0.2, 0.1, -2.8))
+             .times(Mat4.scale(0.45,0.2,3.425));
 
-        this.shapes.cube.draw(context, program_state, model_transform_floor, this.materials.ceramic);
-        this.shapes.cube.draw(context, program_state, model_transform_ceiling, this.materials.ceramic);
-        this.shapes.cube.draw(context, program_state, model_transform_left_wall, this.materials.ceramic);
-        this.shapes.cube.draw(context, program_state, model_transform_right_wall, this.materials.ceramic);
-        this.shapes.cube.draw(context, program_state, model_transform_front_wall, this.materials.ceramic);
-        this.shapes.cube.draw(context, program_state, model_transform_back_wall_top, this.materials.ceramic);
-        this.shapes.cube.draw(context, program_state, model_transform_back_wall_right, this.materials.ceramic);
-        this.shapes.cube.draw(context, program_state, model_transform_back_wall_bottom, this.materials.ceramic);
-        this.shapes.cube.draw(context, program_state, model_transform_back_wall_left, this.materials.ceramic);
+        // Painting 1
+        let painting_1_model_transform = model_transform.times(Mat4.translation(27,8,-14.89)).times(Mat4.scale(6,8,1,0));
+
+        this.shapes.square_2d.draw(context, program_state, painting_1_model_transform, this.painting_1);
+
+        // Shelf 1
+        let shelf_1_model_transform = model_transform.times(Mat4.translation(30, 3.5, -12.4))
+            .times(Mat4.scale(8,0.5,2.5));
+        let shelf_back_model_transform = model_transform.times(Mat4.translation(30, -2, -14.6))
+            .times(Mat4.scale(8,6.05,0.3));
+        let shelf_side_model_transform = model_transform.times(Mat4.translation(22, -2.5, -12.4))
+        .times(Mat4.scale(0.3,6.55,2.55));
+
+        this.shapes.cube.draw(context, program_state, shelf_1_model_transform, shadow_pass? this.wood : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_1_model_transform.times(Mat4.translation(0,-8,0)), shadow_pass? this.wood : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_1_model_transform.times(Mat4.translation(0,-16,0)), shadow_pass? this.wood : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_1_model_transform.times(Mat4.translation(0,-24,0)), shadow_pass? this.wood : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_back_model_transform, shadow_pass? this.wood.override({color: color(0.88,0.43,0.38,1)}) : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_side_model_transform, shadow_pass? this.wood.override({color: color(0.88,0.43,0.38,1)}) : this.pure);
+        this.shapes.cube.draw(context, program_state, shelf_side_model_transform.times(Mat4.translation(53.5,0,0)), shadow_pass? this.wood.override({color: color(0.88,0.43,0.38,1)}) : this.pure);
+        // End Shelf 1
+
+        this.shapes.cube.draw(context, program_state, model_transform_floor, shadow_pass? this.ceramic : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_ceiling, shadow_pass? this.ceramic : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_left_wall, shadow_pass? this.ceramic : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_right_wall, shadow_pass? this.ceramic : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_front_wall, shadow_pass? this.ceramic : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_top, shadow_pass? this.ceramic : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_right, shadow_pass? this.ceramic : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_bottom, shadow_pass? this.ceramic : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_left, shadow_pass? this.ceramic : this.pure);
 
         if(this.toggle.table) {
-            this.shapes.cube.draw(context, program_state, model_transform_counter, this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_leg, this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,0)), this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(0,0,-10)), this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,-10)), this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_counter, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_leg, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,0)), shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(0,0,-10)), shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_leg.times(Mat4.translation(-10,0,-10)), shadow_pass? this.wood : this.pure);
         }
 
         if(this.toggle.chair) {
-            this.shapes.cube.draw(context, program_state, model_transform_ch_leg, this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_ch_leg.times(Mat4.translation(-6, 0, 0)), this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_ch_leg.times(Mat4.translation(0, 0, -6)), this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_ch_leg.times(Mat4.translation(-6, 0, -6)), this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_seat, this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_back, this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_arm, this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_arm.times(Mat4.translation(0,0,-18)), this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_armrest, this.materials.wood);
-            this.shapes.cube.draw(context, program_state, model_transform_armrest.times(Mat4.translation(0,0,-18)), this.materials.wood);
+            this.shapes.cube.draw(context, program_state, model_transform_ch_leg, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_ch_leg.times(Mat4.translation(-6, 0, 0)), shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_ch_leg.times(Mat4.translation(0, 0, -6)), shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_ch_leg.times(Mat4.translation(-6, 0, -6)), shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_seat, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_back, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_arm, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_arm.times(Mat4.translation(0,0,-18)), shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_armrest, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_armrest.times(Mat4.translation(0,0,-18)), shadow_pass? this.wood : this.pure);
         }
 
         if(this.toggle.book) {
-            this.shapes.cube.draw(context, program_state, model_transform_book1, this.materials.test);
-            this.shapes.cube.draw(context, program_state, model_transform_book1_bottom, this.materials.book_1_cover);
-            this.shapes.cube.draw(context, program_state, model_transform_book1_top, this.materials.book_1_cover);
-            this.shapes.cube.draw(context, program_state, model_transform_book1_binding, this.materials.book_1_cover);
+            this.shapes.cube.draw(context, program_state, model_transform_book1, shadow_pass? this.book_filling : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_book1_bottom, shadow_pass? this.book_1_cover : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_book1_top, shadow_pass? this.book_1_cover : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_book1_binding, shadow_pass? this.book_1_cover : this.pure);
         }
 
         if(this.toggle.mug) {
-             this.shapes.cup.draw(context, program_state, mug_model_transform, this.materials.ceramic);
-             this.shapes.circle.draw(context, program_state, mug_base_model_transform, this.materials.ceramic);
+             this.shapes.cup.draw(context, program_state, mug_model_transform, shadow_pass? this.ceramic : this.pure);
+             this.shapes.circle.draw(context, program_state, mug_base_model_transform, shadow_pass? this.ceramic : this.pure);
         }
 
         if(this.toggle.computer) {
-            this.shapes.comps.draw(context, program_state, model_transform_screen, this.materials.screen);
-            this.shapes.cube.draw(context, program_state, model_transform_monitor_back, this.materials.bmetal);
-            this.shapes.cube.draw(context, program_state, model_transform_monitor_left, this.materials.bmetal);
-            this.shapes.cube.draw(context, program_state, model_transform_monitor_right, this.materials.bmetal);
-            this.shapes.cube.draw(context, program_state, model_transform_monitor_above, this.materials.bmetal);
-            this.shapes.cube.draw(context, program_state, model_transform_monitor_below, this.materials.bmetal);
-            this.shapes.cube.draw(context, program_state, model_transform_monitor_stand, this.materials.bmetal);
-            this.shapes.circle.draw(context,program_state,model_transform_monitor_base,this.materials.bmetal);
-           }
+             this.shapes.comps.draw(context, program_state, model_transform_screen, this.screen);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_back, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_left, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_right, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_above, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_below, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.cube.draw(context, program_state, model_transform_monitor_stand, shadow_pass ? this.bmetal : this.pure);
+             this.shapes.circle.draw(context,program_state,model_transform_monitor_base, shadow_pass ? this.bmetal : this.pure);
+        }
+
+        // -------------------------------------------------
+
+        
+    }
+
+    display(context, program_state) {
+        const t = program_state.animation_time;
+        const gl = context.context;
+
+        if (!this.init_ok) {
+            const ext = gl.getExtension('WEBGL_depth_texture');
+            if (!ext) {
+                return alert('need WEBGL_depth_texture');  // eslint-disable-line
+            }
+            this.texture_buffer_init(gl);
+
+            this.init_ok = true;
+        }
+
+        if (!context.scratchpad.controls) {
+            this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
+            // Define the global camera and projection matrices, which are stored in program_state.
+            program_state.set_camera(this.initial_camera_location);
+        }
+        program_state.projection_transform = Mat4.perspective(
+            Math.PI / 4, context.width / context.height, .1, 1000);
+
+        // ----------------------------------------------------------------------------------------
+        const light_rotation_matrix = Mat4.rotation(t/1000, 0, 0, 1);
+        const light_position = light_rotation_matrix.times(vec4(20, 6, -22, 1));
+        this.light_position = light_position;
+        // ----------------------------------------------------------------------------------------
+        
+        const sun_radius = 2 + Math.sin(2 * Math.PI * t / 10000);
+        this.light_color = color(1, (sun_radius / 2 - 0.5), (sun_radius / 2 - 0.5), 1);
+
+        // This is a rough target of the light.
+        // Although the light is point light, we need a target to set the POV of the light
+        this.light_view_target = vec4(0, 0, 0, 1);
+        this.light_field_of_view = 130 * Math.PI / 180; // 130 degree
+
+        program_state.lights = [new Light(this.light_position, this.light_color, 1000)];
+
+        // Step 1: set the perspective and camera to the POV of light
+        const light_view_mat = Mat4.look_at(
+            vec3(this.light_position[0], this.light_position[1], this.light_position[2]),
+            vec3(this.light_view_target[0], this.light_view_target[1], this.light_view_target[2]),
+            vec3(0, 1, 0), // assume the light to target will have a up dir of +y, maybe need to change according to your case
+        );
+        const light_proj_mat = Mat4.perspective(this.light_field_of_view, 1, 0.5, 500);
+        // Bind the Depth Texture Buffer
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.lightDepthFramebuffer);
+        gl.viewport(0, 0, this.lightDepthTextureSize, this.lightDepthTextureSize);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        // Prepare uniforms
+        program_state.light_view_mat = light_view_mat;
+        program_state.light_proj_mat = light_proj_mat;
+        program_state.light_tex_mat = light_proj_mat;
+        program_state.view_mat = light_view_mat;
+        program_state.projection_transform = light_proj_mat;
+        this.render_scene(context, program_state, false,false, false);
+
+        // Step 2: unbind, draw to the canvas
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        program_state.view_mat = program_state.camera_inverse;
+        program_state.projection_transform = Mat4.perspective(Math.PI / 4, context.width / context.height, 0.5, 500);
+        this.render_scene(context, program_state, true,true, true);
+
+        // ------------------------
+
+        this.light_pov = light_view_mat.times(Mat4.translation(0,0,-4));
 
         // setting the camera
         if (this.attached) {
@@ -279,63 +513,20 @@ export class Assignment3 extends Scene {
                 program_state.set_camera(smoothed);
             }
             else {
-                let desired = this.attached().times(Mat4.translation(0, 0, 5));
-                desired = Mat4.inverse(desired);
+                let desired = this.attached();
                 let smoothed = desired.map((x,i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1));
                 program_state.set_camera(smoothed);
 
             }
         }
-    }
-}
-
-class Ring_Shader extends Shader {
-    update_GPU(context, gpu_addresses, graphics_state, model_transform, material) {
-        // update_GPU():  Defining how to synchronize our JavaScript's variables to the GPU's:
-        const [P, C, M] = [graphics_state.projection_transform, graphics_state.camera_inverse, model_transform],
-            PCM = P.times(C).times(M);
-        context.uniformMatrix4fv(gpu_addresses.model_transform, false, Matrix.flatten_2D_to_1D(model_transform.transposed()));
-        context.uniformMatrix4fv(gpu_addresses.projection_camera_model_transform, false,
-            Matrix.flatten_2D_to_1D(PCM.transposed()));
+        //program_state.set_camera(light_view_mat.times(Mat4.translation(0,0,-4)));  
+        // ----------------------------
     }
 
-    shared_glsl_code() {
-        // ********* SHARED CODE, INCLUDED IN BOTH SHADERS *********
-        return `
-        precision mediump float;
-        varying vec4 point_position;
-        varying vec4 center;
-        `;
-    }
-
-    vertex_glsl_code() {
-        // ********* VERTEX SHADER *********
-        // TODO:  Complete the main function of the vertex shader (Extra Credit Part II).
-        return this.shared_glsl_code() + `
-        attribute vec3 position;
-        uniform mat4 model_transform;
-        uniform mat4 projection_camera_model_transform;
-        
-        void main(){
-            // The vertex's final resting place (in NDCS):
-            gl_Position = projection_camera_model_transform * vec4( position, 1.0 );
-            point_position = model_transform * vec4(position, 1.0);
-            
-            // position of center of the ring
-            center = model_transform * vec4(0.0, 0.0, 0.0, 1.0);       
-        }`;
-    }
-
-    fragment_glsl_code() {
-        // ********* FRAGMENT SHADER *********
-        // TODO:  Complete the main function of the fragment shader (Extra Credit Part II).
-        return this.shared_glsl_code() + `
-        void main(){
-            vec3 distance = vec3(point_position.xyz - center.xyz);
-            
-            // alpha value
-            gl_FragColor = vec4(vec3(0.69, 0.5, 0.25), cos(length(distance) * 20.0));
-        }`;
-    }
+    // show_explanation(document_element) {
+    //     document_element.innerHTML += "<p>This demo loads an external 3D model file of a teapot.  It uses a condensed version of the \"webgl-obj-loader.js\" "
+    //         + "open source library, though this version is not guaranteed to be complete and may not handle some .OBJ files.  It is contained in the class \"Shape_From_File\". "
+    //         + "</p><p>One of these teapots is lit with bump mapping.  Can you tell which one?</p>";
+    // }
 }
 
