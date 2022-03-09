@@ -1,4 +1,5 @@
 import {defs, tiny} from './examples/common.js';
+
 // Pull these names into this module's scope for convenience:
 const {Vector, vec3, vec4, vec, color, Matrix, Mat4, Light, Shape, Material, Shader, Texture, Scene} = tiny;
 const {Cube, Axis_Arrows, Textured_Phong, Phong_Shader, Basic_Shader, Subdivision_Sphere, Cylindrical_Tube} = defs
@@ -42,7 +43,9 @@ export class Assignment3 extends Scene {
             sphere4: new defs.Subdivision_Sphere(4),
             comps: new Cube(),
             moon: new defs.Subdivision_Sphere(4),
+
         };
+        console.log(this.shapes.comps.arrays.texture_coord)
 
         console.log(this.shapes.comps.arrays.texture_coord)
 
@@ -454,7 +457,6 @@ export class Assignment3 extends Scene {
             // Define the global camera and projection matrices, which are stored in program_state.
             program_state.set_camera(this.initial_camera_location);
         }
-
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, .1, 1000);
 
@@ -503,7 +505,6 @@ export class Assignment3 extends Scene {
         // ------------------------
 
         this.light_pov = light_view_mat.times(Mat4.translation(0,0,-4));
-
 
         // setting the camera
         if (this.attached) {
