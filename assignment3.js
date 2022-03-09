@@ -87,7 +87,7 @@ export class Assignment3 extends Scene {
 
         // book_filling
         this.book_filling = new Material(new Shadow_Textured_Phong_Shader(1),
-                {ambient: 0.2, diffusivity: .6, color: color(1,1,1,1), smoothness: 64,
+                {ambient: 0.6, diffusivity: .6, color: color(1,1,1,1), smoothness: 64,
             color_texture: null,
             light_depth_texture: null
         }),
@@ -129,7 +129,13 @@ export class Assignment3 extends Scene {
                  color: color(0,0,0,1),
                  ambient: 1, diffusivity: 0.1, specularity: 0.1,
                  texture: new Texture("assets/squidward.jpeg", "NEAREST")
-             })
+             }),
+
+        this.rug = new Material(new Textured_Phong(), {
+            color: color(0,0,0,1),
+            ambient: 1, diffusivity: 0.1, specularity: 0.1,
+            texture: new Texture("assets/city_rug.jpg", "NEAREST")
+        })
 
         // ---------------------------------------------------------------------------------
 
@@ -143,6 +149,7 @@ export class Assignment3 extends Scene {
             chair: true,
             mug: true,
             computer: true,
+            notebook: true,
         }
         
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
@@ -156,6 +163,7 @@ export class Assignment3 extends Scene {
         this.key_triggered_button("Toggle Mug", ["Control", "3"], () => this.toggle.mug = !this.toggle.mug);
         this.new_line();
         this.key_triggered_button("Toggle Computer", ["Control", "4"], () => this.toggle.computer = !this.toggle.computer);
+        this.key_triggered_button("Toggle Notebook", ["Control", "5"], () => this.toggle.notebook = !this.toggle.notebook);
         this.key_triggered_button("Return to Original View", ["Control", "5"], () => this.attached = () => this.initial_camera_location);
         this.key_triggered_button("Switch to Light's POV", ["Control", "6"], () => this.attached = () => this.light_pov);
     }
@@ -362,6 +370,25 @@ export class Assignment3 extends Scene {
 
         this.shapes.square_2d.draw(context, program_state, painting_1_model_transform, this.painting_1);
 
+        // Notebook
+        let model_transform_notebook_left = model_transform.times(Mat4.rotation(Math.PI * 4 / 9, 1,0,0))
+            .times(Mat4.translation(2.5, 1, 1.8))
+            .times(Mat4.scale(0.8,1,0.1));
+        let model_transform_notebook_left_cover = model_transform.times(Mat4.rotation(Math.PI * 4 / 9, 1,0,0))
+            .times(Mat4.translation(2.5, 1, 2))
+            .times(Mat4.scale(0.9,1,0.1));
+        let model_transform_notebook_middle = model_transform.times(Mat4.translation(2.5, -1.9, 0.3))
+            .times(Mat4.scale(0.9,0.15,0.1));
+        let model_transform_notebook_right = model_transform.times(Mat4.translation(2.5, -1.75, -0.7))
+            .times(Mat4.scale(0.8,0.1,1));
+        let model_transform_notebook_right_cover = model_transform.times(Mat4.translation(2.5, -1.95, -0.7))
+            .times(Mat4.scale(0.9,0.1,1));
+
+        // Rug
+        let model_transform_rug = model_transform.times(Mat4.translation(1, -9, -3))
+            .times(Mat4.scale(20,0.01,9));
+        this.shapes.cube.draw(context, program_state, model_transform_rug, this.rug);
+
         // Shelf 1
         let shelf_1_model_transform = model_transform.times(Mat4.translation(30, 3.5, -12.4))
             .times(Mat4.scale(8,0.5,2.5));
@@ -369,6 +396,7 @@ export class Assignment3 extends Scene {
             .times(Mat4.scale(8,6.05,0.3));
         let shelf_side_model_transform = model_transform.times(Mat4.translation(22, -2.5, -12.4))
         .times(Mat4.scale(0.3,6.55,2.55));
+
 
         this.shapes.cube.draw(context, program_state, shelf_1_model_transform, shadow_pass? this.wood : this.pure);
         this.shapes.cube.draw(context, program_state, shelf_1_model_transform.times(Mat4.translation(0,-8,0)), shadow_pass? this.wood : this.pure);
@@ -431,6 +459,17 @@ export class Assignment3 extends Scene {
              this.shapes.cube.draw(context, program_state, model_transform_monitor_below, shadow_pass ? this.bmetal : this.pure);
              this.shapes.cube.draw(context, program_state, model_transform_monitor_stand, shadow_pass ? this.bmetal : this.pure);
              this.shapes.circle.draw(context,program_state,model_transform_monitor_base, shadow_pass ? this.bmetal : this.pure);
+        }
+
+        if(this.toggle.notebook){
+            this.shapes.cube.draw(context, program_state, model_transform_notebook_left, shadow_pass? this.book_filling : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_notebook_left_cover,
+                shadow_pass? this.book_filling.override({color: color(0.1647,0.3216,0.7451,1)}) : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_notebook_middle,
+                shadow_pass? this.book_filling.override({color: color(0.1647,0.3216,0.7451,1)}) : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_notebook_right, shadow_pass? this.book_filling : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_notebook_right_cover,
+                shadow_pass? this.book_filling.override({color: color(0.1647,0.3216,0.7451,1)}) : this.pure);
         }
 
         // -------------------------------------------------
