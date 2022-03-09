@@ -137,6 +137,24 @@ export class Assignment3 extends Scene {
             texture: new Texture("assets/city_rug.jpg", "NEAREST")
         })
 
+        // flooring
+        this.flooring = new Material(new Textured_Phong(), {
+            color: color(0, 0, 0, 1),
+            ambient: 0.2,
+            diffusivity: 0.9,
+            specularity: 0.9,
+            texture: new Texture("assets/wooden_flooring.jpg", "NEAREST")
+        })
+
+        // walls
+        this.wall = new Material(new Textured_Phong(), {
+            color: color(0, 0, 0, 1),
+            ambient: 0.2,
+            diffusivity: 0.9,
+            specularity: 0.9,
+            texture: new Texture("assets/wall.png", "NEAREST")
+        })
+
         // ---------------------------------------------------------------------------------
 
         // To make sure texture initialization only does once
@@ -150,9 +168,18 @@ export class Assignment3 extends Scene {
             mug: true,
             computer: true,
             notebook: true,
+            time: true,
         }
-        
+
+        // Used for timing
+        this.first_entry = true;
+        this.old_time = 0;
+        this.lapsed_time = 0;
+
+        // Used for camera work
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
+        this.top_right_camera_location = Mat4.look_at(vec3(35, 30, 35), vec3(0, 4, 0), vec3(0, 1, 0));
+        this.top_left_camera_location = Mat4.look_at(vec3(-35, 30, 35), vec3(0, 4, 0), vec3(0, 1, 0));
     }
 
     make_control_panel() {
@@ -166,6 +193,12 @@ export class Assignment3 extends Scene {
         this.key_triggered_button("Toggle Notebook", ["Control", "5"], () => this.toggle.notebook = !this.toggle.notebook);
         this.key_triggered_button("Return to Original View", ["Control", "5"], () => this.attached = () => this.initial_camera_location);
         this.key_triggered_button("Switch to Light's POV", ["Control", "6"], () => this.attached = () => this.light_pov);
+        this.key_triggered_button("Switch to Top-Right POV", ["Control", "r"], () => this.attached = () => this.top_right_camera_location)
+        this.key_triggered_button("Switch to Top-Left POV", ["Control", "l"], () => this.attached = () => this.top_left_camera_location)
+        this.key_triggered_button("Pause / Unpause time", ["t"], () => {
+            this.toggle.time = !this.toggle.time
+            this.first_entry = true;
+        });
     }
 
     texture_buffer_init(gl) {
@@ -240,7 +273,21 @@ export class Assignment3 extends Scene {
 
         let light_position = this.light_position;
         let light_color = this.light_color;
-        const t = program_state.animation_time/1000;
+        let t;
+        if (this.toggle.time) {
+            if(this.first_entry) {
+                this.first_entry = false;
+                this.lapsed_time = program_state.animation_time / 1000 - this.old_time
+            }
+            t = program_state.animation_time / 1000 - this.lapsed_time;
+        }
+        else {
+            if(this.first_entry) {
+                this.first_entry = false;
+                this.old_time = program_state.animation_time / 1000 - this.lapsed_time;
+            }
+            t = this.old_time;
+        }
 
         program_state.draw_shadow = draw_shadow;
         
@@ -407,15 +454,15 @@ export class Assignment3 extends Scene {
         this.shapes.cube.draw(context, program_state, shelf_side_model_transform.times(Mat4.translation(53.5,0,0)), shadow_pass? this.wood.override({color: color(0.88,0.43,0.38,1)}) : this.pure);
         // End Shelf 1
 
-        this.shapes.cube.draw(context, program_state, model_transform_floor, shadow_pass? this.ceramic : this.pure);
-        this.shapes.cube.draw(context, program_state, model_transform_ceiling, shadow_pass? this.ceramic : this.pure);
-        this.shapes.cube.draw(context, program_state, model_transform_left_wall, shadow_pass? this.ceramic : this.pure);
-        this.shapes.cube.draw(context, program_state, model_transform_right_wall, shadow_pass? this.ceramic : this.pure);
-        this.shapes.cube.draw(context, program_state, model_transform_front_wall, shadow_pass? this.ceramic : this.pure);
-        this.shapes.cube.draw(context, program_state, model_transform_back_wall_top, shadow_pass? this.ceramic : this.pure);
-        this.shapes.cube.draw(context, program_state, model_transform_back_wall_right, shadow_pass? this.ceramic : this.pure);
-        this.shapes.cube.draw(context, program_state, model_transform_back_wall_bottom, shadow_pass? this.ceramic : this.pure);
-        this.shapes.cube.draw(context, program_state, model_transform_back_wall_left, shadow_pass? this.ceramic : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_floor, shadow_pass? this.flooring : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_ceiling, shadow_pass? this.wall : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_left_wall, shadow_pass? this.wall : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_right_wall, shadow_pass? this.wall : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_front_wall, shadow_pass? this.wall : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_top, shadow_pass? this.wall : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_right, shadow_pass? this.wall : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_bottom, shadow_pass? this.wall : this.pure);
+        this.shapes.cube.draw(context, program_state, model_transform_back_wall_left, shadow_pass? this.wall : this.pure);
 
         if(this.toggle.table) {
             this.shapes.cube.draw(context, program_state, model_transform_counter, shadow_pass? this.wood : this.pure);
@@ -478,7 +525,21 @@ export class Assignment3 extends Scene {
     }
 
     display(context, program_state) {
-        const t = program_state.animation_time;
+        let t;
+        if (this.toggle.time) {
+            if(this.first_entry) {
+                this.first_entry = false;
+                this.lapsed_time = program_state.animation_time / 1000 - this.old_time
+            }
+            t = program_state.animation_time / 1000 - this.lapsed_time;
+        }
+        else {
+            if(this.first_entry) {
+                this.first_entry = false;
+                this.old_time = program_state.animation_time / 1000 - this.lapsed_time;
+            }
+            t = this.old_time;
+        }
         const gl = context.context;
 
         if (!this.init_ok) {
@@ -500,7 +561,7 @@ export class Assignment3 extends Scene {
             Math.PI / 4, context.width / context.height, .1, 1000);
 
         // ----------------------------------------------------------------------------------------
-        const light_rotation_matrix = Mat4.rotation(t/1000, 0, 0, 1);
+        const light_rotation_matrix = Mat4.rotation(t, 0, 0, 1);
         const light_position = light_rotation_matrix.times(vec4(20, 6, -22, 1));
         this.light_position = light_position;
         // ----------------------------------------------------------------------------------------
