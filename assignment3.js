@@ -169,6 +169,8 @@ export class Assignment3 extends Scene {
             computer: true,
             notebook: true,
             time: true,
+            noon: false,
+            midnight: false,
         }
 
         // Used for timing
@@ -176,8 +178,16 @@ export class Assignment3 extends Scene {
         this.old_time = 0;
         this.lapsed_time = 0;
 
+        // Used for setting time
+        this.noon = 1.2;
+        this.midnight = 5;
+        this.time_adjust = 0;
+        this.first_set = false;
+        // this.debugtime = 0;
+
         // Used for camera work
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
+        this.starting_camera_location = Mat4.look_at(vec3(0, 10, 35), vec3(0, 6, 0), vec3(0, 1, 0));
         this.top_right_camera_location = Mat4.look_at(vec3(35, 30, 35), vec3(0, 4, 0), vec3(0, 1, 0));
         this.top_left_camera_location = Mat4.look_at(vec3(-35, 30, 35), vec3(0, 4, 0), vec3(0, 1, 0));
     }
@@ -191,7 +201,7 @@ export class Assignment3 extends Scene {
         this.new_line();
         this.key_triggered_button("Toggle Computer", ["Control", "4"], () => this.toggle.computer = !this.toggle.computer);
         this.key_triggered_button("Toggle Notebook", ["Control", "5"], () => this.toggle.notebook = !this.toggle.notebook);
-        this.key_triggered_button("Return to Original View", ["Control", "5"], () => this.attached = () => this.initial_camera_location);
+        this.key_triggered_button("Return to Original View", ["Control", "5"], () => this.attached = () => this.starting_camera_location);
         this.key_triggered_button("Switch to Light's POV", ["Control", "6"], () => this.attached = () => this.light_pov);
         this.key_triggered_button("Switch to Top-Right POV", ["Control", "r"], () => this.attached = () => this.top_right_camera_location)
         this.key_triggered_button("Switch to Top-Left POV", ["Control", "l"], () => this.attached = () => this.top_left_camera_location)
@@ -199,6 +209,17 @@ export class Assignment3 extends Scene {
             this.toggle.time = !this.toggle.time
             this.first_entry = true;
         });
+        this.key_triggered_button("Set to noon", ["Control", "s"], () => {
+            this.first_set = true;
+            this.toggle.noon = true;
+        })
+        this.key_triggered_button("Set to midnight", ["Control", "m"], () => {
+            this.first_set = true;
+            this.toggle.midnight = true;
+        })
+        // this.key_triggered_button("log time", ["Control", "a"], () => {
+        //     console.log(this.debugtime)
+        // })
     }
 
     texture_buffer_init(gl) {
@@ -288,6 +309,18 @@ export class Assignment3 extends Scene {
             }
             t = this.old_time;
         }
+        if (this.first_set) {
+            this.first_set = false;
+            if(this.toggle.noon) {
+                this.time_adjust = t - this.noon;
+                this.toggle.noon = false;
+            }
+            if(this.toggle.midnight) {
+                this.time_adjust = t - this.midnight;
+                this.toggle.midnight = false;
+            }
+        }
+        t = t - this.time_adjust
 
         program_state.draw_shadow = draw_shadow;
         
@@ -366,13 +399,13 @@ export class Assignment3 extends Scene {
                                                       .times(Mat4.translation(-7,0,-1.89)).times(Mat4.scale(0.68,0.68,1));
 
         // Room
-        let model_transform_floor = model_transform.times(Mat4.translation(0, -9.7, 0))
+        let model_transform_floor = model_transform.times(Mat4.translation(0, -9.7, 25))
             .times(Mat4.scale(40,0.7,40));
-        let model_transform_ceiling = model_transform.times(Mat4.translation(0, 31, 0))
+        let model_transform_ceiling = model_transform.times(Mat4.translation(0, 31, 25))
             .times(Mat4.scale(40,0.7,40));
-        let model_transform_left_wall = model_transform.times(Mat4.translation(-40, 11, 0))
+        let model_transform_left_wall = model_transform.times(Mat4.translation(-40, 11, 25))
             .times(Mat4.scale(0.7, 20, 40));
-        let model_transform_right_wall = model_transform.times(Mat4.translation(40, 11, 0))
+        let model_transform_right_wall = model_transform.times(Mat4.translation(40, 11, 25))
             .times(Mat4.scale(0.7, 20, 40));
         let model_transform_front_wall = model_transform.times(Mat4.translation(0, 11, 40))
             .times(Mat4.scale(40, 20, 0.7));
@@ -540,6 +573,18 @@ export class Assignment3 extends Scene {
             }
             t = this.old_time;
         }
+        if (this.first_set) {
+            this.first_set = false;
+            if(this.toggle.noon) {
+                this.time_adjust = t - this.noon;
+                this.toggle.noon = false;
+            }
+            if(this.toggle.midnight) {
+                this.time_adjust = t - this.midnight;
+                this.toggle.midnight = false;
+            }
+        }
+        t = t - this.time_adjust
         const gl = context.context;
 
         if (!this.init_ok) {
