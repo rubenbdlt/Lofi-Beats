@@ -133,8 +133,26 @@ export class Assignment3 extends Scene {
 
         this.rug = new Material(new Textured_Phong(), {
             color: color(0,0,0,1),
-            ambient: 1, diffusivity: 0.1, specularity: 0.1,
+            ambient: 0.8, diffusivity: 0.1, specularity: 0.1,
             texture: new Texture("assets/city_rug.jpg", "NEAREST")
+        })
+
+        this.bed = new Material(new Textured_Phong(), {
+            color: color(0,0,0,1),
+            ambient: 0.7, diffusivity: 0.3, specularity: 0.1,
+            texture: new Texture("assets/bed.jpg", "NEAREST")
+        })
+
+        this.pillow = new Material(new Textured_Phong(), {
+            color: color(0,0,0,1),
+            ambient: 0.7, diffusivity: 0.3, specularity: 0.1,
+            texture: new Texture("assets/pillow.jpg", "NEAREST")
+        })
+
+        this.painting_2 = new Material(new Textured_Phong(), {
+            color: color(0,0,0,1),
+            ambient: 0.8, diffusivity: 0.1, specularity: 0.1,
+            texture: new Texture("assets/ucla.jpg", "NEAREST")
         })
 
         // flooring
@@ -171,6 +189,7 @@ export class Assignment3 extends Scene {
             time: true,
             noon: false,
             midnight: false,
+            bed: true,
         }
 
         // Used for timing
@@ -201,8 +220,9 @@ export class Assignment3 extends Scene {
         this.new_line();
         this.key_triggered_button("Toggle Computer", ["Control", "4"], () => this.toggle.computer = !this.toggle.computer);
         this.key_triggered_button("Toggle Notebook", ["Control", "5"], () => this.toggle.notebook = !this.toggle.notebook);
-        this.key_triggered_button("Return to Original View", ["Control", "5"], () => this.attached = () => this.starting_camera_location);
-        this.key_triggered_button("Switch to Light's POV", ["Control", "6"], () => this.attached = () => this.light_pov);
+        this.key_triggered_button("Toggle Bed", ["Control", "6"], () => this.toggle.bed = !this.toggle.bed);
+        this.key_triggered_button("Return to Original View", ["Control", "7"], () => this.attached = () => this.starting_camera_location);
+        this.key_triggered_button("Switch to Light's POV", ["Control", "8"], () => this.attached = () => this.light_pov);
         this.key_triggered_button("Switch to Top-Right POV", ["Control", "r"], () => this.attached = () => this.top_right_camera_location)
         this.key_triggered_button("Switch to Top-Left POV", ["Control", "l"], () => this.attached = () => this.top_left_camera_location)
         this.key_triggered_button("Pause / Unpause time", ["t"], () => {
@@ -445,10 +465,14 @@ export class Assignment3 extends Scene {
              .times(Mat4.translation(-0.2, 0.1, -2.8))
              .times(Mat4.scale(0.45,0.2,3.425));
 
-        // Painting 1
-        let painting_1_model_transform = model_transform.times(Mat4.translation(27,8,-14.89)).times(Mat4.scale(6,8,1,0));
+        // Painting 1 & 2
+        let painting_1_model_transform = model_transform.times(Mat4.translation(27,8,-14.89))
+            .times(Mat4.scale(6,8,1,0));
+        let painting_2_model_transform = model_transform.times(Mat4.translation(-34,6,-14.89))
+            .times(Mat4.scale(8,10,1,0));
 
         this.shapes.square_2d.draw(context, program_state, painting_1_model_transform, this.painting_1);
+        this.shapes.square_2d.draw(context, program_state, painting_2_model_transform, this.painting_2);
 
         // Notebook
         let model_transform_notebook_left = model_transform.times(Mat4.rotation(Math.PI * 4 / 9, 1,0,0))
@@ -468,6 +492,42 @@ export class Assignment3 extends Scene {
         let model_transform_rug = model_transform.times(Mat4.translation(1, -9, -3))
             .times(Mat4.scale(20,0.01,9));
         this.shapes.cube.draw(context, program_state, model_transform_rug, this.rug);
+
+        // Bed
+        let model_transform_bed_rod_fr = model_transform.times(Mat4.rotation(Math.PI / 2, 1, 0,0))
+            .times(Mat4.translation(-20, -10 ,2))
+            .times(Mat4.scale(0.5, 0.5, 15));
+        let model_transform_bed_rod_fl = model_transform.times(Mat4.rotation(Math.PI / 2, 1, 0,0))
+            .times(Mat4.translation(-38, -10 ,2))
+            .times(Mat4.scale(0.5, 0.5, 15));
+        let model_transform_bed_rod_br = model_transform.times(Mat4.rotation(Math.PI / 2, 1, 0,0))
+            .times(Mat4.translation(-20, 10 ,5))
+            .times(Mat4.scale(0.5, 0.5, 8));
+        let model_transform_bed_rod_bl = model_transform.times(Mat4.rotation(Math.PI / 2, 1, 0,0))
+            .times(Mat4.translation(-38, 10 ,5))
+            .times(Mat4.scale(0.5, 0.5, 8));
+        let model_transform_bed = model_transform.times(Mat4.translation(-29, -4 ,0))
+            .times(Mat4.scale(9, 2.5, 10));
+        let model_transform_bed_headboard = model_transform.times(Mat4.translation(-29, 2 ,-10))
+            .times(Mat4.scale(9, 2.5, 0.5));
+        let model_transform_bed_front = model_transform.times(Mat4.translation(-29, -5 ,10))
+            .times(Mat4.scale(9, 2.5, 0.5));
+        let model_transform_bed_back = model_transform.times(Mat4.translation(-29, -5 ,-10))
+            .times(Mat4.scale(9, 2.5, 0.5));
+        let model_transform_bed_right = model_transform.times(Mat4.translation(-20, -5 ,0))
+            .times(Mat4.scale(0.5, 1.5, 10));
+        let model_transform_bed_left = model_transform.times(Mat4.translation(-38, -5 ,0))
+            .times(Mat4.scale(0.5, 1.5, 10));
+        let model_transform_bed_ball_bl = model_transform.times(Mat4.translation(-38, 6.125 ,-10))
+            .times(Mat4.scale(0.75, 0.75, 0.75));
+        let model_transform_bed_ball_br = model_transform.times(Mat4.translation(-20, 6.125 ,-10))
+            .times(Mat4.scale(0.75, 0.75, 0.75));
+        let model_transform_bed_ball_fl = model_transform.times(Mat4.translation(-38, -0.375 ,10))
+            .times(Mat4.scale(0.75, 0.75, 0.75));
+        let model_transform_bed_ball_fr = model_transform.times(Mat4.translation(-20, -0.375 ,10))
+            .times(Mat4.scale(0.75, 0.75, 0.75));
+        let model_transform_pillow = model_transform.times(Mat4.translation(-29, -0.75 ,-5))
+            .times(Mat4.scale(5, 0.75, 3));
 
         // Shelf 1
         let shelf_1_model_transform = model_transform.times(Mat4.translation(30, 3.5, -12.4))
@@ -550,6 +610,24 @@ export class Assignment3 extends Scene {
             this.shapes.cube.draw(context, program_state, model_transform_notebook_right, shadow_pass? this.book_filling : this.pure);
             this.shapes.cube.draw(context, program_state, model_transform_notebook_right_cover,
                 shadow_pass? this.book_filling.override({color: color(0.1647,0.3216,0.7451,1)}) : this.pure);
+        }
+
+        if(this.toggle.bed) {
+            this.shapes.cup.draw(context, program_state, model_transform_bed_rod_fr, shadow_pass? this.wood : this.pure);
+            this.shapes.cup.draw(context, program_state, model_transform_bed_rod_fl, shadow_pass? this.wood : this.pure);
+            this.shapes.cup.draw(context, program_state, model_transform_bed_rod_br, shadow_pass? this.wood : this.pure);
+            this.shapes.cup.draw(context, program_state, model_transform_bed_rod_bl, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_bed, shadow_pass? this.bed : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_bed_headboard, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_bed_back, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_bed_front, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_bed_right, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_bed_left, shadow_pass? this.wood : this.pure);
+            this.shapes.sphere4.draw(context, program_state, model_transform_bed_ball_fr, shadow_pass? this.wood : this.pure);
+            this.shapes.sphere4.draw(context, program_state, model_transform_bed_ball_fl, shadow_pass? this.wood : this.pure);
+            this.shapes.sphere4.draw(context, program_state, model_transform_bed_ball_br, shadow_pass? this.wood : this.pure);
+            this.shapes.sphere4.draw(context, program_state, model_transform_bed_ball_bl, shadow_pass? this.wood : this.pure);
+            this.shapes.cube.draw(context, program_state, model_transform_pillow, shadow_pass? this.pillow : this.pure);
         }
 
         // -------------------------------------------------
