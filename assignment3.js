@@ -417,6 +417,18 @@ export class Assignment3 extends Scene {
         let mug_base_model_transform = model_transform//.times(Mat4.scale(1,1,1))
                                                       .times(Mat4.rotation(4.71239,1,0,0))
                                                       .times(Mat4.translation(-7,0,-1.89)).times(Mat4.scale(0.68,0.68,1));
+        // DAY: 91, 206, 245
+        // NIGHT: 13, 28, 33
+
+        let sinvar = t - Math.PI / 15
+        let bg_colorR = ((13 + 39 * Math.sin(sinvar)) % 91) / 255
+        let bg_colorG = ((28 + 89 * Math.sin(sinvar)) % 206) / 255
+        let bg_colorB = ((33 + 106 * Math.sin(sinvar)) % 245) / 255
+
+        let background_color = color(bg_colorR, bg_colorG, bg_colorB, 1)
+        // Background
+        let model_transform_background = model_transform.times(Mat4.translation(0, 11, -200))
+          .times(Mat4.scale(4000,4000,0.1));
 
         // Room
         let model_transform_floor = model_transform.times(Mat4.translation(0, -9.7, 25))
@@ -556,6 +568,8 @@ export class Assignment3 extends Scene {
         this.shapes.cube.draw(context, program_state, model_transform_back_wall_right, shadow_pass? this.wall : this.pure);
         this.shapes.cube.draw(context, program_state, model_transform_back_wall_bottom, shadow_pass? this.wall : this.pure);
         this.shapes.cube.draw(context, program_state, model_transform_back_wall_left, shadow_pass? this.wall : this.pure);
+
+        this.shapes.cube.draw(context, program_state, model_transform_background, this.wood.override({color: background_color, ambient: 0.7}))
 
         if(this.toggle.table) {
             this.shapes.cube.draw(context, program_state, model_transform_counter, shadow_pass? this.wood : this.pure);
