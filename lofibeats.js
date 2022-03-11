@@ -29,7 +29,7 @@ const Square =
     }
 
 // The scene
-export class Assignment3 extends Scene {
+export class LofiScene extends Scene {
     constructor() {
         super();
         // Load the model file:
