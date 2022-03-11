@@ -131,22 +131,25 @@ export class Assignment3 extends Scene {
                  texture: new Texture("assets/squidward.jpeg", "NEAREST")
              }),
 
-        this.rug = new Material(new Textured_Phong(), {
-            color: color(0,0,0,1),
-            ambient: 0.8, diffusivity: 0.1, specularity: 0.1,
-            texture: new Texture("assets/city_rug.jpg", "NEAREST")
+        this.rug = new Material(new Shadow_Textured_Phong_Shader(1), {
+            color: color(0.2,0.2,0.2,1),
+            ambient: 0.3, diffusivity: 0.6, specularity: 0.4, smoothness:64,
+            color_texture: new Texture("assets/city_rug.jpg"),
+            light_depth_texture: null
         })
 
-        this.bed = new Material(new Textured_Phong(), {
+        this.bed = new Material(new Shadow_Textured_Phong_Shader(1), {
             color: color(0,0,0,1),
             ambient: 0.7, diffusivity: 0.3, specularity: 0.1,
-            texture: new Texture("assets/bed.jpg", "NEAREST")
+            color_texture: new Texture("assets/bed.jpg"),
+            light_depth_texture: null
         })
 
-        this.pillow = new Material(new Textured_Phong(), {
-            color: color(0,0,0,1),
+        this.pillow = new Material(new Shadow_Textured_Phong_Shader(1), {
+            color: color(0.1,0.1,0.1,1),
             ambient: 0.7, diffusivity: 0.3, specularity: 0.1,
-            texture: new Texture("assets/pillow.jpg", "NEAREST")
+            color_texture: new Texture("assets/pillow.jpg"),
+            light_depth_texture: null
         })
 
         this.painting_2 = new Material(new Textured_Phong(), {
@@ -156,21 +159,23 @@ export class Assignment3 extends Scene {
         })
 
         // flooring
-        this.flooring = new Material(new Textured_Phong(), {
-            color: color(0, 0, 0, 1),
-            ambient: 0.2,
-            diffusivity: 0.9,
-            specularity: 0.9,
-            texture: new Texture("assets/wooden_flooring.jpg", "NEAREST")
+        this.flooring = new Material(new Shadow_Textured_Phong_Shader(1), {
+            color: color(0.5, 0.5, 0.5, 1),
+            ambient: 0.3,
+            diffusivity: 0.6,
+            specularity: 0.4,
+            color_texture: new Texture("assets/wooden_flooring.jpg", "NEAREST"),
+            light_depth_texture: null
         })
 
         // walls
-        this.wall = new Material(new Textured_Phong(), {
-            color: color(0, 0, 0, 1),
-            ambient: 0.2,
-            diffusivity: 0.9,
-            specularity: 0.9,
-            texture: new Texture("assets/wall.png", "NEAREST")
+        this.wall = new Material(new Shadow_Textured_Phong_Shader(1), {
+            color: color(0.6, 0.6, 0.6, 1),
+            ambient: 0.3,
+            diffusivity: 0.6,
+            specularity: 0.4,
+            color_texture: new Texture("assets/wall.png"),
+            light_depth_texture: null
         })
 
         // ---------------------------------------------------------------------------------
@@ -344,12 +349,6 @@ export class Assignment3 extends Scene {
 
         program_state.draw_shadow = draw_shadow;
         
-        //if (draw_light_source && shadow_pass) {
-        //    this.shapes.sphere.draw(context, program_state,
-        //        Mat4.translation(light_position[0], light_position[1], light_position[2]).times(Mat4.scale(.5,.5,.5)),
-        //        this.light_src.override({color: light_color}));
-        //}
-
         // --------------------------------------------------------------------------------------------
         const light_rotation_matrix = Mat4.rotation(t, 0, 0, 1);
         let model_transform = Mat4.identity();
@@ -369,19 +368,13 @@ export class Assignment3 extends Scene {
              .times(Mat4.scale(2, 2, 2))
              .times(Mat4.translation(-10,3,-10));
          this.shapes.moon.draw(context, program_state, model_transform_moon, this.materials.moon);
-        // --------------------------------------------------------------------------------------------
 
-
-        // teapot
         for (let i of [-1, 1]) { // Spin the 3D model shapes as well.
             const model_transform = Mat4.translation(2 * i, 40, 0)
                 .times(Mat4.rotation(t, -1, 2, 0))
                 .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0));
             this.shapes.teapot.draw(context, program_state, model_transform, shadow_pass? this.stars : this.pure);
         }
-
-
-        // ------------------------------------------------------------------------------------------
 
         // Table
         let model_transform_leg = model_transform.times(Mat4.translation(0, -6, 0))
@@ -756,7 +749,7 @@ export class Assignment3 extends Scene {
 
             }
         }
-        //program_state.set_camera(light_view_mat.times(Mat4.translation(0,0,-4)));  
+   
         // ----------------------------
     }
 
