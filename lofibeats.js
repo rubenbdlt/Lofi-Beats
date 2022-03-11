@@ -254,6 +254,15 @@ export class LofiScene extends Scene {
         this.light_depth_texture = new Buffered_Texture(this.lightDepthTexture);
         this.stars.light_depth_texture = this.light_depth_texture
         this.floor.light_depth_texture = this.light_depth_texture
+        this.flooring.light_depth_texture = this.light_depth_texture
+        this.rug.light_depth_texture = this.light_depth_texture
+        this.wood.light_depth_texture = this.light_depth_texture
+        this.wall.light_depth_texture = this.light_depth_texture
+        this.ceramic.light_depth_texture = this.light_depth_texture
+        this.book_1_cover.light_depth_texture = this.light_depth_texture
+        this.bed.light_depth_texture = this.light_depth_texture
+        this.pillow.light_depth_texture = this.light_depth_texture
+
 
         this.lightDepthTextureSize = LIGHT_DEPTH_TEX_SIZE;
         gl.bindTexture(gl.TEXTURE_2D, this.lightDepthTexture);
@@ -368,13 +377,6 @@ export class LofiScene extends Scene {
              .times(Mat4.scale(2, 2, 2))
              .times(Mat4.translation(-10,3,-10));
          this.shapes.moon.draw(context, program_state, model_transform_moon, this.materials.moon);
-
-        for (let i of [-1, 1]) { // Spin the 3D model shapes as well.
-            const model_transform = Mat4.translation(2 * i, 40, 0)
-                .times(Mat4.rotation(t, -1, 2, 0))
-                .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0));
-            this.shapes.teapot.draw(context, program_state, model_transform, shadow_pass? this.stars : this.pure);
-        }
 
         // Table
         let model_transform_leg = model_transform.times(Mat4.translation(0, -6, 0))
